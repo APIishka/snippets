@@ -28,14 +28,15 @@ export const SnippetProvider = ({ children }) => {
   const filteredSnippets = useMemo(() => {
     let filtered = [...snippets];
 
-    // Apply search query
+    // Apply search query - search in title, notes, tags, category, AND code content
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(snippet =>
         snippet.title.toLowerCase().includes(query) ||
         snippet.notes.toLowerCase().includes(query) ||
         snippet.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        snippet.category.toLowerCase().includes(query)
+        snippet.category.toLowerCase().includes(query) ||
+        snippet.code.toLowerCase().includes(query) // Search in code content like VS Code
       );
     }
 
@@ -113,6 +114,9 @@ export const SnippetProvider = ({ children }) => {
     // Stats
     totalSnippets: snippets.length,
     filteredCount: filteredSnippets.length,
+    
+    // Search highlighting
+    hasActiveSearch: searchQuery.trim().length > 0,
   };
 
   return (

@@ -47,7 +47,7 @@ const SnippetsPage = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search snippets..."
+                placeholder="Search in code, titles, notes, tags..."
                 className="w-full pl-12 pr-4 py-4 border rounded-lg text-base font-medium focus:outline-none transition-colors"
                 style={{ 
                   background: pageBackground,

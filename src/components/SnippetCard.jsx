@@ -8,7 +8,7 @@ import { useSnippets } from '../context/SnippetContext';
 import { ayuDarkTheme, vsCodeDarkTheme, githubLightTheme } from '../utils/colorSchemes';
 
 const SnippetCard = ({ snippet }) => {
-  const { colorScheme } = useSnippets();
+  const { colorScheme, searchQuery, hasActiveSearch } = useSnippets();
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);
   
@@ -52,12 +52,103 @@ const SnippetCard = ({ snippet }) => {
     }
   }, [snippet.language]);
 
+  // Highlight search matches in the code (VS Code-like find feature)
+  useEffect(() => {
+    if (!hasActiveSearch || !searchQuery.trim()) return;
+
+    const query = searchQuery.toLowerCase();
+    const codeElements = document.querySelectorAll(`[data-snippet-id="${snippet.id}"] code`);
+    
+    codeElements.forEach(codeEl => {
+      const walker = document.createTreeWalker(
+        codeEl,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+
+      const nodesToHighlight = [];
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const text = node.textContent;
+        if (text && text.toLowerCase().includes(query)) {
+          nodesToHighlight.push(node);
+        }
+      }
+
+      nodesToHighlight.forEach(textNode => {
+        const text = textNode.textContent;
+        const lowerText = text.toLowerCase();
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        let searchIndex = 0;
+
+        while ((searchIndex = lowerText.indexOf(query, lastIndex)) !== -1) {
+          // Add text before match
+          if (searchIndex > lastIndex) {
+            fragment.appendChild(
+              document.createTextNode(text.substring(lastIndex, searchIndex))
+            );
+          }
+
+          // Add highlighted match
+          const mark = document.createElement('mark');
+          mark.textContent = text.substring(searchIndex, searchIndex + query.length);
+          mark.style.backgroundColor = colorScheme === 'light' ? '#fff59d' : '#ffd60a';
+          mark.style.color = colorScheme === 'light' ? '#000000' : '#000000';
+          mark.style.padding = '0 2px';
+          mark.style.borderRadius = '2px';
+          fragment.appendChild(mark);
+
+          lastIndex = searchIndex + query.length;
+        }
+
+        // Add remaining text
+        if (lastIndex < text.length) {
+          fragment.appendChild(
+            document.createTextNode(text.substring(lastIndex))
+          );
+        }
+
+        if (fragment.childNodes.length > 0) {
+          textNode.parentNode.replaceChild(fragment, textNode);
+        }
+      });
+    });
+
+    // Cleanup function to remove highlights when search changes
+    return () => {
+      const marks = document.querySelectorAll(`[data-snippet-id="${snippet.id}"] mark`);
+      marks.forEach(mark => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      });
+    };
+  }, [snippet.id, searchQuery, hasActiveSearch, colorScheme]);
+
   const cardBorderColor = colorScheme === 'light' ? '#d0d7de' : '#1f2937';
   const cardHoverBorder = colorScheme === 'light' ? '#0969da' : '#25d5f8';
   const textColor = colorScheme === 'light' ? '#57606a' : '#6b7280';
   const detailsBorderColor = colorScheme === 'light' ? '#d0d7de' : '#1f2937';
-  
-  const LanguageIcon = useMemo(() => getLanguageIcon(snippet.language), [snippet.language]);
+
+  // Count matches in code for VS Code-like match indicator
+  const matchCount = useMemo(() => {
+    if (!hasActiveSearch || !searchQuery.trim()) return 0;
+    
+    const query = searchQuery.toLowerCase();
+    const codeText = snippet.code.toLowerCase();
+    let count = 0;
+    let pos = 0;
+    
+    while ((pos = codeText.indexOf(query, pos)) !== -1) {
+      count++;
+      pos += query.length;
+    }
+    
+    return count;
+  }, [snippet.code, searchQuery, hasActiveSearch]);
 
   return (
     <div 
@@ -71,12 +162,31 @@ const SnippetCard = ({ snippet }) => {
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-2">
-        <h3 className="text-xs font-normal flex-1 leading-tight" style={{ color: textColor }}>
-          {snippet.title}
-        </h3>
+        <div className="flex items-center gap-2 flex-1">
+          <h3 className="text-xs font-normal leading-tight" style={{ color: textColor }}>
+            {snippet.title}
+          </h3>
+          {/* Match count badge (VS Code-like) */}
+          {matchCount > 0 && (
+            <span 
+              className="text-xs px-1.5 py-0.5 rounded font-medium"
+              style={{
+                backgroundColor: colorScheme === 'light' ? '#fff59d' : '#ffd60a',
+                color: '#000000',
+                fontSize: '0.65rem',
+              }}
+              title={`${matchCount} match${matchCount !== 1 ? 'es' : ''} found`}
+            >
+              {matchCount}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1 ml-3 flex-shrink-0">
           <div style={{ color: textColor }}>
-            <LanguageIcon className="w-3.5 h-3.5" />
+            {(() => {
+              const Icon = getLanguageIcon(snippet.language);
+              return <Icon className="w-3.5 h-3.5" />;
+            })()}
           </div>
           <button
             onClick={() => setShowDetails(!showDetails)}
@@ -106,7 +216,7 @@ const SnippetCard = ({ snippet }) => {
       </div>
 
       {/* Code with Syntax Highlighting */}
-      <div className="rounded overflow-hidden mb-2 flex-1">
+      <div className="rounded overflow-hidden mb-2 flex-1" data-snippet-id={snippet.id}>
         <SyntaxHighlighter
           language={snippet.language}
           style={currentTheme}
