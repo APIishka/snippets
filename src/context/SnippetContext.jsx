@@ -17,6 +17,7 @@ export const SnippetProvider = ({ children }) => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [sortBy, setSortBy] = useState('dateAdded'); // dateAdded, title, language
   const [viewMode, setViewMode] = useState('grid'); // grid, list
+  const [colorScheme, setColorScheme] = useState('ayu'); // ayu, vscode, light
 
   // Get all available filters
   const languages = useMemo(() => getAllLanguages(), []);
@@ -101,6 +102,10 @@ export const SnippetProvider = ({ children }) => {
     setSortBy,
     viewMode,
     setViewMode,
+    
+    // Theme
+    colorScheme,
+    setColorScheme,
 
     // Actions
     clearFilters,

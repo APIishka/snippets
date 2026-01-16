@@ -29,6 +29,24 @@ body {
   background: #262626;
 }
 
+/* Python-specific syntax highlighting enhancements */
+.language-python .token.keyword {
+  color: #FF8F40 !important;
+}
+
+.language-python .token.function {
+  color: #FFB454 !important;
+}
+
+.language-python .token.class-name {
+  color: #59C2FF !important;
+}
+
+/* Special handling for self and cls */
+code[class*="language-python"] {
+  font-family: 'Monaco', 'Consolas', 'Courier New', monospace !important;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -143,6 +161,7 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
