@@ -1,0 +1,10 @@
+{
+  "id": "snippet-006",
+  "title": "Python Decorators - Function Wrappers",
+  "language": "python",
+  "tags": ["python", "decorators", "advanced", "metaprogramming"],
+  "codeFile": "snippet-006.py",
+  "notes": "Decorators are functions that modify other functions. Use @wraps to preserve function metadata. Common for timing, caching, validation, and logging. Powerful metaprogramming feature.",
+  "dateAdded": "2026-01-16T07:30:00Z",
+  "category": "Python Advanced"
+}

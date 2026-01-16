@@ -1,0 +1,10 @@
+{
+  "id": "snippet-001",
+  "title": "Arrow Functions - Modern JavaScript Syntax",
+  "language": "javascript",
+  "tags": ["javascript", "es6", "arrow-functions", "basics"],
+  "codeFile": "snippet-001.js",
+  "notes": "Arrow functions provide a concise syntax for writing functions in JavaScript. They have implicit returns for single expressions and lexically bind 'this'. Perfect for callbacks and functional programming.",
+  "dateAdded": "2026-01-16T10:00:00Z",
+  "category": "JavaScript Fundamentals"
+}

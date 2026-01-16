@@ -1,0 +1,10 @@
+{
+  "id": "snippet-004",
+  "title": "Python Functions - Basic to Advanced",
+  "language": "python",
+  "tags": ["python", "functions", "lambda", "basics"],
+  "codeFile": "snippet-004.py",
+  "notes": "Python functions support default parameters, *args for variable positional arguments, **kwargs for variable keyword arguments, and lambda for anonymous functions. Flexible and powerful.",
+  "dateAdded": "2026-01-16T08:30:00Z",
+  "category": "Python Fundamentals"
+}
