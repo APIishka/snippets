@@ -1,0 +1,10 @@
+{
+  "id": "snippet-012",
+  "title": "Python Class with Properties and Magic Methods",
+  "language": "python",
+  "tags": ["python", "classes", "oop", "properties", "magic-methods", "encapsulation"],
+  "codeFile": "snippet-012.py",
+  "notes": "Demonstrates Python class best practices: private attributes (underscore prefix), @property decorators for getters, data validation in methods, magic methods (__repr__, __len__) for better object representation. Properties provide controlled access to internal state.",
+  "dateAdded": "2026-01-16T13:15:00Z",
+  "category": "Python OOP Best Practices"
+}

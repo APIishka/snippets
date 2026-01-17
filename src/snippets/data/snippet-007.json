@@ -1,0 +1,10 @@
+{
+  "id": "snippet-007",
+  "title": "Async/Await with Error Handling - Best Practices",
+  "language": "javascript",
+  "tags": ["javascript", "async", "await", "error-handling", "fetch", "api"],
+  "codeFile": "snippet-007.js",
+  "notes": "Demonstrates proper async/await usage with try-catch error handling. Always handle errors in async functions and throw meaningful error messages. The response status check is crucial for API calls.",
+  "dateAdded": "2026-01-16T12:00:00Z",
+  "category": "JavaScript Async Patterns"
+}
