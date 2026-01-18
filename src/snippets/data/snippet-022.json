@@ -1,0 +1,10 @@
+{
+  "id": "snippet-022",
+  "title": "Command Pattern - Action Encapsulation with Undo",
+  "language": "javascript",
+  "tags": ["javascript", "design-patterns", "command", "behavioral", "undo", "history"],
+  "codeFile": "snippet-022.js",
+  "notes": "Command encapsulates actions as objects. Enables undo/redo, queuing, logging operations. Each command knows how to execute and reverse itself. Use for: text editors, transaction systems, macro recording, job queues. Core of Redux actions.",
+  "dateAdded": "2026-01-16T16:00:00Z",
+  "category": "Design Patterns - Behavioral"
+}

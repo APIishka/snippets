@@ -12,6 +12,15 @@ import snippet010Data from './data/snippet-010.json';
 import snippet011Data from './data/snippet-011.json';
 import snippet012Data from './data/snippet-012.json';
 import snippet013Data from './data/snippet-013.json';
+import snippet014Data from './data/snippet-014.json';
+import snippet015Data from './data/snippet-015.json';
+import snippet016Data from './data/snippet-016.json';
+import snippet017Data from './data/snippet-017.json';
+import snippet018Data from './data/snippet-018.json';
+import snippet019Data from './data/snippet-019.json';
+import snippet020Data from './data/snippet-020.json';
+import snippet021Data from './data/snippet-021.json';
+import snippet022Data from './data/snippet-022.json';
 
 // Code file imports
 import snippet001Code from './code/snippet-001.js?raw';
@@ -27,6 +36,15 @@ import snippet010Code from './code/snippet-010.py?raw';
 import snippet011Code from './code/snippet-011.js?raw';
 import snippet012Code from './code/snippet-012.py?raw';
 import snippet013Code from './code/snippet-013.js?raw';
+import snippet014Code from './code/snippet-014.js?raw';
+import snippet015Code from './code/snippet-015.js?raw';
+import snippet016Code from './code/snippet-016.js?raw';
+import snippet017Code from './code/snippet-017.js?raw';
+import snippet018Code from './code/snippet-018.js?raw';
+import snippet019Code from './code/snippet-019.js?raw';
+import snippet020Code from './code/snippet-020.js?raw';
+import snippet021Code from './code/snippet-021.js?raw';
+import snippet022Code from './code/snippet-022.js?raw';
 
 // Map code files to their data
 const codeFiles = {
@@ -43,6 +61,15 @@ const codeFiles = {
   'snippet-011.js': snippet011Code,
   'snippet-012.py': snippet012Code,
   'snippet-013.js': snippet013Code,
+  'snippet-014.js': snippet014Code,
+  'snippet-015.js': snippet015Code,
+  'snippet-016.js': snippet016Code,
+  'snippet-017.js': snippet017Code,
+  'snippet-018.js': snippet018Code,
+  'snippet-019.js': snippet019Code,
+  'snippet-020.js': snippet020Code,
+  'snippet-021.js': snippet021Code,
+  'snippet-022.js': snippet022Code,
 };
 
 // Combine data and code
@@ -60,6 +87,15 @@ const snippetsData = [
   snippet011Data,
   snippet012Data,
   snippet013Data,
+  snippet014Data,
+  snippet015Data,
+  snippet016Data,
+  snippet017Data,
+  snippet018Data,
+  snippet019Data,
+  snippet020Data,
+  snippet021Data,
+  snippet022Data,
 ];
 
 // Create complete snippet objects

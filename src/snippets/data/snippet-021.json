@@ -1,0 +1,10 @@
+{
+  "id": "snippet-021",
+  "title": "Strategy Pattern - Interchangeable Algorithms",
+  "language": "javascript",
+  "tags": ["javascript", "design-patterns", "strategy", "behavioral", "algorithms", "polymorphism"],
+  "codeFile": "snippet-021.js",
+  "notes": "Strategy defines family of algorithms and makes them interchangeable. Client can switch algorithms at runtime. Use for: payment methods, sorting algorithms, compression strategies, authentication methods. Enables Open/Closed Principle.",
+  "dateAdded": "2026-01-16T15:45:00Z",
+  "category": "Design Patterns - Behavioral"
+}

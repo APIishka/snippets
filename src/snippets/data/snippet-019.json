@@ -1,0 +1,10 @@
+{
+  "id": "snippet-019",
+  "title": "Proxy Pattern - Controlled Access and Validation",
+  "language": "javascript",
+  "tags": ["javascript", "design-patterns", "proxy", "structural", "validation", "es6"],
+  "codeFile": "snippet-019.js",
+  "notes": "Proxy controls access to objects with custom behavior. JavaScript has built-in Proxy with traps (get, set, has, deleteProperty). Use for: access control, validation, lazy loading, logging, caching. Common in Vue 3 reactivity, API wrappers.",
+  "dateAdded": "2026-01-16T15:15:00Z",
+  "category": "Design Patterns - Structural"
+}

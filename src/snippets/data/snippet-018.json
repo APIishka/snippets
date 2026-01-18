@@ -1,0 +1,10 @@
+{
+  "id": "snippet-018",
+  "title": "Decorator Pattern - Dynamic Behavior Extension",
+  "language": "javascript",
+  "tags": ["javascript", "design-patterns", "decorator", "structural", "higher-order-functions"],
+  "codeFile": "snippet-018.js",
+  "notes": "Decorator adds behavior to functions/objects dynamically. Uses higher-order functions or wrapper classes. Decorators are stackable and composable. Use for: logging, timing, caching, validation, authentication. Common in middleware, React HOCs.",
+  "dateAdded": "2026-01-16T15:00:00Z",
+  "category": "Design Patterns - Structural"
+}

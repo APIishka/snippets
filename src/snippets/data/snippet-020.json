@@ -1,0 +1,10 @@
+{
+  "id": "snippet-020",
+  "title": "Observer Pattern - Event-Driven Architecture",
+  "language": "javascript",
+  "tags": ["javascript", "design-patterns", "observer", "behavioral", "events", "pub-sub"],
+  "codeFile": "snippet-020.js",
+  "notes": "Observer (Pub-Sub) lets objects subscribe to events and get notified. Decouples event producers from consumers. Use for: event systems, state changes, UI updates, real-time notifications. Foundation of React state, EventEmitter in Node.js.",
+  "dateAdded": "2026-01-16T15:30:00Z",
+  "category": "Design Patterns - Behavioral"
+}
