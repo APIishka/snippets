@@ -1,4 +1,4 @@
-import { Search, Palette } from 'lucide-react';
+import { Search, Palette, Heart } from 'lucide-react';
 import { useSnippets } from '../context/SnippetContext';
 import SnippetCard from '../components/SnippetCard';
 import { getLanguageIcon } from '../utils/languageIcons';
@@ -13,6 +13,9 @@ const SnippetsPage = () => {
     languages,
     colorScheme,
     setColorScheme,
+    showFavoritesOnly,
+    setShowFavoritesOnly,
+    favoritesCount,
   } = useSnippets();
 
   const getPageBackground = () => {
@@ -67,8 +70,8 @@ const SnippetsPage = () => {
                 const nextIndex = (currentIndex + 1) % schemes.length;
                 setColorScheme(schemes[nextIndex]);
               }}
-              className="px-4 py-4 border rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
-              style={{ 
+              className="px-4 py-4 border rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer"
+              style={{
                 background: pageBackground,
                 borderColor: inputBorder,
                 color: buttonText,
@@ -94,27 +97,30 @@ const SnippetsPage = () => {
           {languages.length > 0 && (
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => setSelectedLanguage('all')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-                  selectedLanguage === 'all' ? '' : 'border'
+                onClick={() => {
+                  setSelectedLanguage('all');
+                  setShowFavoritesOnly(false);
+                }}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${
+                  selectedLanguage === 'all' && !showFavoritesOnly ? '' : 'border'
                 }`}
                 style={
-                  selectedLanguage === 'all'
+                  selectedLanguage === 'all' && !showFavoritesOnly
                     ? { background: colorScheme === 'light' ? '#0969da' : '#25d5f8', color: '#ffffff' }
-                    : { 
+                    : {
                         background: pageBackground,
                         borderColor: inputBorder,
                         color: buttonText,
                       }
                 }
                 onMouseEnter={(e) => {
-                  if (selectedLanguage !== 'all') {
+                  if (selectedLanguage !== 'all' || showFavoritesOnly) {
                     e.currentTarget.style.color = buttonHoverText;
                     e.currentTarget.style.borderColor = buttonHoverBorder;
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (selectedLanguage !== 'all') {
+                  if (selectedLanguage !== 'all' || showFavoritesOnly) {
                     e.currentTarget.style.color = buttonText;
                     e.currentTarget.style.borderColor = inputBorder;
                   }
@@ -122,18 +128,72 @@ const SnippetsPage = () => {
               >
                 All
               </button>
+              <button
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer ${
+                  showFavoritesOnly ? '' : 'border'
+                }`}
+                style={
+                  showFavoritesOnly
+                    ? { background: '#ef4444', color: '#ffffff' }
+                    : {
+                        background: pageBackground,
+                        borderColor: inputBorder,
+                        color: buttonText,
+                      }
+                }
+                onMouseEnter={(e) => {
+                  if (!showFavoritesOnly) {
+                    e.currentTarget.style.color = '#ef4444';
+                    e.currentTarget.style.borderColor = '#ef4444';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!showFavoritesOnly) {
+                    e.currentTarget.style.color = buttonText;
+                    e.currentTarget.style.borderColor = inputBorder;
+                  }
+                }}
+              >
+                <Heart
+                  className="w-4 h-4"
+                  fill={showFavoritesOnly ? '#ffffff' : 'none'}
+                />
+                Favorites {favoritesCount > 0 && `(${favoritesCount})`}
+              </button>
               {languages.map(lang => {
                 const Icon = getLanguageIcon(lang);
                 return (
                   <button
                     key={lang}
-                    onClick={() => setSelectedLanguage(lang)}
-                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 ${
-                      selectedLanguage === lang
-                        ? 'bg-[#25d5f8] text-black'
-                        : 'border border-gray-800 text-gray-500 hover:text-[#25d5f8] hover:border-[#25d5f8]'
+                    onClick={() => {
+                      setSelectedLanguage(lang);
+                      setShowFavoritesOnly(false);
+                    }}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer ${
+                      selectedLanguage === lang && !showFavoritesOnly ? '' : 'border'
                     }`}
-                    style={selectedLanguage !== lang ? { background: pageBackground } : {}}
+                    style={
+                      selectedLanguage === lang && !showFavoritesOnly
+                        ? { background: colorScheme === 'light' ? '#0969da' : '#25d5f8', color: '#ffffff' }
+                        : {
+                            background: pageBackground,
+                            borderColor: inputBorder,
+                            color: buttonText,
+                          }
+                    }
+                    onMouseEnter={(e) => {
+                      if (selectedLanguage !== lang || showFavoritesOnly) {
+                        e.currentTarget.style.color = buttonHoverText;
+                        e.currentTarget.style.borderColor = buttonHoverBorder;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedLanguage !== lang || showFavoritesOnly) {
+                        e.currentTarget.style.color = buttonText;
+                        e.currentTarget.style.borderColor = inputBorder;
+                      }
+                    }}
                   >
                     <Icon className="w-4 h-4" />
                     {lang.charAt(0).toUpperCase() + lang.slice(1)}

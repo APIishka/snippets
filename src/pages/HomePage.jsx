@@ -30,7 +30,7 @@ const HomePage = () => {
         </h1>
         <Link
           to="/snippets"
-          className="text-gray-200 hover:text-white transition-colors text-base font-medium tracking-wide"
+          className="text-gray-200 hover:text-white transition-colors text-base font-medium tracking-wide cursor-pointer"
         >
           View Library →
         </Link>

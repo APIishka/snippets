@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import snippets, { getAllLanguages, getAllTags, getAllCategories } from '../snippets';
 
 const SnippetContext = createContext();
@@ -18,6 +18,26 @@ export const SnippetProvider = ({ children }) => {
   const [sortBy, setSortBy] = useState('dateAdded'); // dateAdded, title, language
   const [viewMode, setViewMode] = useState('grid'); // grid, list
   const [colorScheme, setColorScheme] = useState('ayu'); // ayu, vscode, light
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Load favorites from localStorage
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('snippetFavorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('snippetFavorites', JSON.stringify(favorites));
+    } catch (error) {
+      console.error('Failed to save favorites:', error);
+    }
+  }, [favorites]);
 
   // Get all available filters
   const languages = useMemo(() => getAllLanguages(), []);
@@ -27,6 +47,11 @@ export const SnippetProvider = ({ children }) => {
   // Filter and sort snippets
   const filteredSnippets = useMemo(() => {
     let filtered = [...snippets];
+
+    // Apply favorites filter first
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(snippet => favorites.includes(snippet.id));
+    }
 
     // Apply search query - search in title, notes, tags, category, AND code content
     if (searchQuery.trim()) {
@@ -66,7 +91,7 @@ export const SnippetProvider = ({ children }) => {
     });
 
     return filtered;
-  }, [searchQuery, selectedLanguage, selectedTags, sortBy]);
+  }, [searchQuery, selectedLanguage, selectedTags, sortBy, showFavoritesOnly, favorites]);
 
   // Toggle tag selection
   const toggleTag = (tag) => {
@@ -77,11 +102,26 @@ export const SnippetProvider = ({ children }) => {
     );
   };
 
+  // Toggle favorite
+  const toggleFavorite = (snippetId) => {
+    setFavorites(prev =>
+      prev.includes(snippetId)
+        ? prev.filter(id => id !== snippetId)
+        : [...prev, snippetId]
+    );
+  };
+
+  // Check if snippet is favorite
+  const isFavorite = (snippetId) => {
+    return favorites.includes(snippetId);
+  };
+
   // Clear all filters
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedLanguage('all');
     setSelectedTags([]);
+    setShowFavoritesOnly(false);
   };
 
   const value = {
@@ -103,7 +143,14 @@ export const SnippetProvider = ({ children }) => {
     setSortBy,
     viewMode,
     setViewMode,
-    
+    showFavoritesOnly,
+    setShowFavoritesOnly,
+
+    // Favorites
+    favorites,
+    toggleFavorite,
+    isFavorite,
+
     // Theme
     colorScheme,
     setColorScheme,
@@ -114,7 +161,8 @@ export const SnippetProvider = ({ children }) => {
     // Stats
     totalSnippets: snippets.length,
     filteredCount: filteredSnippets.length,
-    
+    favoritesCount: favorites.length,
+
     // Search highlighting
     hasActiveSearch: searchQuery.trim().length > 0,
   };

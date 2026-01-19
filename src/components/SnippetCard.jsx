@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Info, Copy, Check } from 'lucide-react';
+import { Info, Copy, Check, Heart } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
@@ -8,10 +8,12 @@ import { useSnippets } from '../context/SnippetContext';
 import { ayuDarkTheme, vsCodeDarkTheme, githubLightTheme } from '../utils/colorSchemes';
 
 const SnippetCard = ({ snippet }) => {
-  const { colorScheme, searchQuery, hasActiveSearch } = useSnippets();
+  const { colorScheme, searchQuery, hasActiveSearch, toggleFavorite, isFavorite } = useSnippets();
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);
-  
+
+  const isSnippetFavorite = isFavorite(snippet.id);
+
   // Select theme based on color scheme
   const getTheme = () => {
     switch (colorScheme) {
@@ -21,7 +23,7 @@ const SnippetCard = ({ snippet }) => {
       default: return ayuDarkTheme;
     }
   };
-  
+
   const getBgColor = () => {
     switch (colorScheme) {
       case 'ayu': return '#0f1419';
@@ -30,7 +32,7 @@ const SnippetCard = ({ snippet }) => {
       default: return '#0f1419';
     }
   };
-  
+
   const currentTheme = getTheme();
   const bgColor = getBgColor();
 
@@ -58,7 +60,7 @@ const SnippetCard = ({ snippet }) => {
 
     const query = searchQuery.toLowerCase();
     const codeElements = document.querySelectorAll(`[data-snippet-id="${snippet.id}"] code`);
-    
+
     codeElements.forEach(codeEl => {
       const walker = document.createTreeWalker(
         codeEl,
@@ -136,24 +138,24 @@ const SnippetCard = ({ snippet }) => {
   // Count matches in code for VS Code-like match indicator
   const matchCount = useMemo(() => {
     if (!hasActiveSearch || !searchQuery.trim()) return 0;
-    
+
     const query = searchQuery.toLowerCase();
     const codeText = snippet.code.toLowerCase();
     let count = 0;
     let pos = 0;
-    
+
     while ((pos = codeText.indexOf(query, pos)) !== -1) {
       count++;
       pos += query.length;
     }
-    
+
     return count;
   }, [snippet.code, searchQuery, hasActiveSearch]);
 
   return (
-    <div 
-      className="border rounded-lg p-3 transition-colors h-full flex flex-col" 
-      style={{ 
+    <div
+      className="border rounded-lg p-3 transition-colors h-full flex flex-col"
+      style={{
         background: bgColor,
         borderColor: cardBorderColor,
       }}
@@ -168,7 +170,7 @@ const SnippetCard = ({ snippet }) => {
           </h3>
           {/* Match count badge (VS Code-like) */}
           {matchCount > 0 && (
-            <span 
+            <span
               className="text-xs px-1.5 py-0.5 rounded font-medium"
               style={{
                 backgroundColor: colorScheme === 'light' ? '#fff59d' : '#ffd60a',
@@ -189,8 +191,21 @@ const SnippetCard = ({ snippet }) => {
             })()}
           </div>
           <button
+            onClick={() => toggleFavorite(snippet.id)}
+            className="p-1 transition-colors cursor-pointer"
+            style={{ color: isSnippetFavorite ? '#ef4444' : textColor }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+            onMouseLeave={(e) => e.currentTarget.style.color = isSnippetFavorite ? '#ef4444' : textColor}
+            aria-label={isSnippetFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart
+              className="w-3.5 h-3.5"
+              fill={isSnippetFavorite ? '#ef4444' : 'none'}
+            />
+          </button>
+          <button
             onClick={() => setShowDetails(!showDetails)}
-            className="p-1 transition-colors"
+            className="p-1 transition-colors cursor-pointer"
             style={{ color: textColor }}
             onMouseEnter={(e) => e.currentTarget.style.color = cardHoverBorder}
             onMouseLeave={(e) => e.currentTarget.style.color = textColor}
@@ -200,7 +215,7 @@ const SnippetCard = ({ snippet }) => {
           </button>
           <button
             onClick={handleCopy}
-            className="p-1 transition-colors"
+            className="p-1 transition-colors cursor-pointer"
             style={{ color: textColor }}
             onMouseEnter={(e) => e.currentTarget.style.color = cardHoverBorder}
             onMouseLeave={(e) => e.currentTarget.style.color = textColor}
@@ -250,7 +265,7 @@ const SnippetCard = ({ snippet }) => {
                 <div className="font-medium mb-1.5" style={{ color: textColor }}>Tags</div>
                 <div className="flex flex-wrap gap-1">
                   {snippet.tags.map((tag, index) => (
-                    <span 
+                    <span
                       key={index}
                       className="px-2 py-0.5 rounded text-xs border"
                       style={{
@@ -265,7 +280,7 @@ const SnippetCard = ({ snippet }) => {
                 </div>
               </div>
             )}
-            
+
             {/* Category */}
             {snippet.category && (
               <div>
@@ -273,13 +288,13 @@ const SnippetCard = ({ snippet }) => {
                 <span style={{ color: colorScheme === 'light' ? '#656d76' : '#6b7280' }}>{snippet.category}</span>
               </div>
             )}
-            
+
             {/* Language */}
             <div>
               <span className="font-medium" style={{ color: textColor }}>Language: </span>
               <span style={{ color: colorScheme === 'light' ? '#656d76' : '#6b7280' }}>{snippet.language}</span>
             </div>
-            
+
             {/* Notes */}
             {snippet.notes && (
               <div>
@@ -289,7 +304,7 @@ const SnippetCard = ({ snippet }) => {
                 </p>
               </div>
             )}
-            
+
             {/* Date */}
             <div>
               <span className="font-medium" style={{ color: textColor }}>Added: </span>
