@@ -1,0 +1,10 @@
+{
+  "id": "snippet-025",
+  "title": "Var vs Let vs Const - Scope and Closure Behavior",
+  "language": "javascript",
+  "tags": ["javascript", "var", "let", "const", "scope", "closures", "block-scope"],
+  "codeFile": "snippet-025.js",
+  "notes": "VAR: function-scoped, closures capture the variable reference (can be modified). LET/CONST: block-scoped, don't leak outside blocks. CONST: can't reassign, but closures still capture it. VAR leaks from if/for blocks, let/const don't. Always prefer let/const over var!",
+  "dateAdded": "2026-01-16T17:00:00Z",
+  "category": "JavaScript Scope & Closures"
+}

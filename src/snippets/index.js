@@ -21,6 +21,10 @@ import snippet019Data from './data/snippet-019.json';
 import snippet020Data from './data/snippet-020.json';
 import snippet021Data from './data/snippet-021.json';
 import snippet022Data from './data/snippet-022.json';
+import snippet023Data from './data/snippet-023.json';
+import snippet024Data from './data/snippet-024.json';
+import snippet025Data from './data/snippet-025.json';
+import snippet026Data from './data/snippet-026.json';
 
 // Code file imports
 import snippet001Code from './code/snippet-001.js?raw';
@@ -45,6 +49,10 @@ import snippet019Code from './code/snippet-019.js?raw';
 import snippet020Code from './code/snippet-020.js?raw';
 import snippet021Code from './code/snippet-021.js?raw';
 import snippet022Code from './code/snippet-022.js?raw';
+import snippet023Code from './code/snippet-023.js?raw';
+import snippet024Code from './code/snippet-024.js?raw';
+import snippet025Code from './code/snippet-025.js?raw';
+import snippet026Code from './code/snippet-026.js?raw';
 
 // Map code files to their data
 const codeFiles = {
@@ -70,6 +78,10 @@ const codeFiles = {
   'snippet-020.js': snippet020Code,
   'snippet-021.js': snippet021Code,
   'snippet-022.js': snippet022Code,
+  'snippet-023.js': snippet023Code,
+  'snippet-024.js': snippet024Code,
+  'snippet-025.js': snippet025Code,
+  'snippet-026.js': snippet026Code,
 };
 
 // Combine data and code
@@ -96,6 +108,10 @@ const snippetsData = [
   snippet020Data,
   snippet021Data,
   snippet022Data,
+  snippet023Data,
+  snippet024Data,
+  snippet025Data,
+  snippet026Data,
 ];
 
 // Create complete snippet objects
