@@ -1,0 +1,10 @@
+{
+  "id": "snippet-032",
+  "title": "Python Internals - Object Identity and Caching",
+  "language": "python",
+  "tags": ["python", "identity", "caching", "interning", "is", "references", "memory-optimization"],
+  "codeFile": "snippet-032.py",
+  "notes": "Python optimizes memory: small integers (-5 to 256) are cached and reused. Short strings are interned (same object). Use 'is' for identity (same object), '==' for equality (same value). Multiple variables can reference same object. Understanding this prevents subtle bugs and explains performance.",
+  "dateAdded": "2026-01-16T18:45:00Z",
+  "category": "Python Variables & Memory"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "snippet-033",
+  "title": "Python LEGB Scope - Variable Resolution Order",
+  "language": "python",
+  "tags": ["python", "scope", "LEGB", "closures", "nested-functions", "enclosing"],
+  "codeFile": "snippet-033.py",
+  "notes": "LEGB = Local → Enclosing → Global → Built-in. Python searches for variables in this order. Inner functions can access outer function variables (enclosing scope). Closures capture variables from enclosing scope. Inner variables don't leak to outer scope. Essential for understanding Python's scoping rules!",
+  "dateAdded": "2026-01-16T19:00:00Z",
+  "category": "Python Scope & Closures"
+}

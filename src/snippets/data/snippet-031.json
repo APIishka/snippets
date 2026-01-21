@@ -1,0 +1,10 @@
+{
+  "id": "snippet-031",
+  "title": "Copy Behavior - Shallow vs Deep and Mutable Defaults",
+  "language": "python",
+  "tags": ["python", "copy", "shallow-copy", "deep-copy", "mutable", "default-arguments"],
+  "codeFile": "snippet-031.py",
+  "notes": "Shallow copy: copies outer container, inner objects are shared. Deep copy: completely independent copy. CRITICAL BUG: mutable default arguments (list=[]) are shared across function calls! Always use None as default and create inside function. Use copy.deepcopy() for nested structures.",
+  "dateAdded": "2026-01-16T18:30:00Z",
+  "category": "Python Variables & Memory"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "snippet-030",
+  "title": "Mutable vs Immutable Types - Memory Behavior",
+  "language": "python",
+  "tags": ["python", "mutable", "immutable", "types", "memory", "variables"],
+  "codeFile": "snippet-030.py",
+  "notes": "IMMUTABLE (int, str, tuple, bool, frozenset): Operations create NEW objects. MUTABLE (list, dict, set): Operations modify SAME object. Check with id(). Immutable types are thread-safe and hashable. Mutable in immutable (list in tuple) can still change. Critical for understanding Python's behavior!",
+  "dateAdded": "2026-01-16T18:15:00Z",
+  "category": "Python Variables & Memory"
+}

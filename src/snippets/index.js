@@ -25,6 +25,13 @@ import snippet023Data from './data/snippet-023.json';
 import snippet024Data from './data/snippet-024.json';
 import snippet025Data from './data/snippet-025.json';
 import snippet026Data from './data/snippet-026.json';
+import snippet027Data from './data/snippet-027.json';
+import snippet028Data from './data/snippet-028.json';
+import snippet029Data from './data/snippet-029.json';
+import snippet030Data from './data/snippet-030.json';
+import snippet031Data from './data/snippet-031.json';
+import snippet032Data from './data/snippet-032.json';
+import snippet033Data from './data/snippet-033.json';
 
 // Code file imports
 import snippet001Code from './code/snippet-001.js?raw';
@@ -53,6 +60,13 @@ import snippet023Code from './code/snippet-023.js?raw';
 import snippet024Code from './code/snippet-024.js?raw';
 import snippet025Code from './code/snippet-025.js?raw';
 import snippet026Code from './code/snippet-026.js?raw';
+import snippet027Code from './code/snippet-027.py?raw';
+import snippet028Code from './code/snippet-028.py?raw';
+import snippet029Code from './code/snippet-029.py?raw';
+import snippet030Code from './code/snippet-030.py?raw';
+import snippet031Code from './code/snippet-031.py?raw';
+import snippet032Code from './code/snippet-032.py?raw';
+import snippet033Code from './code/snippet-033.py?raw';
 
 // Map code files to their data
 const codeFiles = {
@@ -82,6 +96,13 @@ const codeFiles = {
   'snippet-024.js': snippet024Code,
   'snippet-025.js': snippet025Code,
   'snippet-026.js': snippet026Code,
+  'snippet-027.py': snippet027Code,
+  'snippet-028.py': snippet028Code,
+  'snippet-029.py': snippet029Code,
+  'snippet-030.py': snippet030Code,
+  'snippet-031.py': snippet031Code,
+  'snippet-032.py': snippet032Code,
+  'snippet-033.py': snippet033Code,
 };
 
 // Combine data and code
@@ -112,6 +133,13 @@ const snippetsData = [
   snippet024Data,
   snippet025Data,
   snippet026Data,
+  snippet027Data,
+  snippet028Data,
+  snippet029Data,
+  snippet030Data,
+  snippet031Data,
+  snippet032Data,
+  snippet033Data,
 ];
 
 // Create complete snippet objects
