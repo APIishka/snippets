@@ -32,3 +32,9 @@ const languageIcons = {
 export const getLanguageIcon = (language) => {
   return languageIcons[language] || Code2;
 };
+
+/** Returns a language icon element. Use this instead of getLanguageIcon when rendering to avoid "component created during render" lint. */
+export const renderLanguageIcon = (language, props = {}) => {
+  const Icon = languageIcons[language] || Code2;
+  return <Icon {...props} />;
+};

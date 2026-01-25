@@ -1,6 +1,8 @@
-import { Search, Palette, Heart } from 'lucide-react';
-import { useSnippets } from '../context/SnippetContext';
+import { useState } from 'react';
+import { Search, Palette, Heart, Lock, Unlock } from 'lucide-react';
+import { useSnippets } from '../context/snippetContext';
 import SnippetCard from '../components/SnippetCard';
+import AddSnippetForm from '../components/AddSnippetForm';
 import { getLanguageIcon } from '../utils/languageIcons';
 
 const SnippetsPage = () => {
@@ -16,7 +18,26 @@ const SnippetsPage = () => {
     showFavoritesOnly,
     setShowFavoritesOnly,
     favoritesCount,
+    loading,
+    fetchError,
+    fetchSnippets,
+    isAuthenticated,
+    isAuthLoading,
+    loginError,
+    loginWithPassword,
+    logout,
   } = useSnippets();
+
+  const [password, setPassword] = useState('');
+  const [unlockLoading, setUnlockLoading] = useState(false);
+
+  const handleUnlock = async () => {
+    if (!password.trim()) return;
+    setUnlockLoading(true);
+    const ok = await loginWithPassword(password);
+    setUnlockLoading(false);
+    if (ok) setPassword('');
+  };
 
   const getPageBackground = () => {
     switch (colorScheme) {
@@ -204,9 +225,71 @@ const SnippetsPage = () => {
           )}
         </div>
 
+        {/* Password gate & Add form */}
+        {!isAuthLoading && (
+          <div className="w-full mb-8">
+            {!isAuthenticated ? (
+              <div className="flex flex-wrap items-end gap-3 p-4 rounded-lg border" style={{ background: pageBackground, borderColor: inputBorder }}>
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm font-medium mb-1" style={{ color: buttonText }}>Password to add or edit snippets</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); }}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUnlock())}
+                    placeholder="Enter password"
+                    className="w-full px-3 py-2 rounded border text-sm focus:outline-none cursor-pointer"
+                    style={{ background: pageBackground, borderColor: inputBorder, color: inputText }}
+                  />
+                </div>
+                <button
+                  onClick={handleUnlock}
+                  disabled={unlockLoading}
+                  className="px-4 py-2 rounded text-sm font-medium flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                  style={{ background: focusBorder, color: '#fff' }}
+                >
+                  <Unlock className="w-4 h-4" />
+                  {unlockLoading ? 'Checking…' : 'Unlock editing'}
+                </button>
+                {loginError && <p className="text-sm w-full" style={{ color: '#ef4444' }}>{loginError}</p>}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium" style={{ color: buttonText }}>Add new snippet</span>
+                  <button
+                    onClick={() => logout()}
+                    className="px-3 py-2 rounded text-sm font-medium flex items-center gap-2 cursor-pointer"
+                    style={{ background: pageBackground, borderColor: inputBorder, color: buttonText, border: '1px solid' }}
+                  >
+                    <Lock className="w-4 h-4" />
+                    Lock
+                  </button>
+                </div>
+                <AddSnippetForm />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Snippets Grid - Responsive Columns */}
         <div className="w-full">
-          {filteredSnippets.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-16">
+              <p className="text-sm" style={{ color: buttonText }}>Loading snippets…</p>
+            </div>
+          ) : fetchError ? (
+            <div className="text-center py-16 space-y-2">
+              <p className="text-sm" style={{ color: '#ef4444' }}>{fetchError}</p>
+              <button
+                onClick={() => fetchSnippets()}
+                className="px-4 py-2 rounded text-sm cursor-pointer"
+                style={{ background: focusBorder, color: '#fff' }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : filteredSnippets.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-sm" style={{ color: buttonText }}>No snippets found</p>
             </div>

@@ -3,8 +3,8 @@ import { Info, Copy, Check, Heart } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
-import { getLanguageIcon } from '../utils/languageIcons';
-import { useSnippets } from '../context/SnippetContext';
+import { renderLanguageIcon } from '../utils/languageIcons';
+import { useSnippets } from '../context/snippetContext';
 import { ayuDarkTheme, vsCodeDarkTheme, githubLightTheme } from '../utils/colorSchemes';
 
 const SnippetCard = ({ snippet }) => {
@@ -185,10 +185,7 @@ const SnippetCard = ({ snippet }) => {
         </div>
         <div className="flex items-center gap-1 ml-3 flex-shrink-0">
           <div style={{ color: textColor }}>
-            {(() => {
-              const Icon = getLanguageIcon(snippet.language);
-              return <Icon className="w-3.5 h-3.5" />;
-            })()}
+            {renderLanguageIcon(snippet.language, { className: 'w-3.5 h-3.5' })}
           </div>
           <button
             onClick={() => toggleFavorite(snippet.id)}

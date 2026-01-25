@@ -1,26 +1,31 @@
-import { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import snippets, { getAllLanguages, getAllTags, getAllCategories } from '../snippets';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
+import { SnippetContext } from './snippetContext';
 
-const SnippetContext = createContext();
-
-export const useSnippets = () => {
-  const context = useContext(SnippetContext);
-  if (!context) {
-    throw new Error('useSnippets must be used within SnippetProvider');
-  }
-  return context;
-};
+function mapRow(row) {
+  return {
+    ...row,
+    dateAdded: row.date_added ?? row.dateAdded,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+  };
+}
 
 export const SnippetProvider = ({ children }) => {
+  const [snippets, setSnippets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [loginError, setLoginError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [selectedTags, setSelectedTags] = useState([]);
-  const [sortBy, setSortBy] = useState('dateAdded'); // dateAdded, title, language
-  const [viewMode, setViewMode] = useState('grid'); // grid, list
-  const [colorScheme, setColorScheme] = useState('ayu'); // ayu, vscode, light
+  const [sortBy, setSortBy] = useState('dateAdded');
+  const [viewMode, setViewMode] = useState('grid');
+  const [colorScheme, setColorScheme] = useState('ayu');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
-  // Load favorites from localStorage
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem('snippetFavorites');
@@ -30,93 +35,149 @@ export const SnippetProvider = ({ children }) => {
     }
   });
 
-  // Save favorites to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem('snippetFavorites', JSON.stringify(favorites));
-    } catch (error) {
-      console.error('Failed to save favorites:', error);
+    } catch (err) {
+      console.error('Failed to save favorites:', err);
     }
   }, [favorites]);
 
-  // Get all available filters
-  const languages = useMemo(() => getAllLanguages(), []);
-  const tags = useMemo(() => getAllTags(), []);
-  const categories = useMemo(() => getAllCategories(), []);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const fetchSnippets = useCallback(() => setRefreshTrigger(t => t + 1), []);
 
-  // Filter and sort snippets
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setFetchError(null);
+      const { data, error } = await supabase
+        .from('snippets')
+        .select('*')
+        .order('date_added', { ascending: false });
+      if (cancelled) return;
+      setLoading(false);
+      if (error) {
+        setFetchError(error.message);
+        setSnippets([]);
+        return;
+      }
+      setSnippets((data || []).map(mapRow));
+    })();
+    return () => { cancelled = true; };
+  }, [refreshTrigger]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setIsAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setIsAuthenticated(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loginWithPassword = useCallback(async (password) => {
+    setLoginError(null);
+    const email = import.meta.env.VITE_ADMIN_EMAIL;
+    if (!email) {
+      setLoginError('Admin email not configured (VITE_ADMIN_EMAIL)');
+      return false;
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoginError(error.message || 'Invalid password');
+      return false;
+    }
+    return true;
+  }, []);
+
+  const logout = useCallback(async () => {
+    setLoginError(null);
+    await supabase.auth.signOut();
+  }, []);
+
+  const addSnippet = useCallback(async (payload) => {
+    const { error } = await supabase.from('snippets').insert({
+      title: payload.title,
+      language: payload.language,
+      tags: payload.tags || [],
+      code: payload.code,
+      notes: payload.notes || null,
+      category: payload.category || null,
+    });
+    if (error) throw error;
+    await fetchSnippets();
+  }, [fetchSnippets]);
+
+  const languages = useMemo(() => {
+    const lang = [...new Set(snippets.map(s => s.language).filter(Boolean))].sort();
+    return lang;
+  }, [snippets]);
+
+  const tags = useMemo(() => {
+    return [...new Set(snippets.flatMap(s => s.tags || []))].sort();
+  }, [snippets]);
+
+  const categories = useMemo(() => {
+    return [...new Set(snippets.map(s => s.category).filter(Boolean))].sort();
+  }, [snippets]);
+
   const filteredSnippets = useMemo(() => {
     let filtered = [...snippets];
 
-    // Apply favorites filter first
     if (showFavoritesOnly) {
-      filtered = filtered.filter(snippet => favorites.includes(snippet.id));
+      filtered = filtered.filter(s => favorites.includes(s.id));
     }
 
-    // Apply search query - search in title, notes, tags, category, AND code content
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(snippet =>
-        snippet.title.toLowerCase().includes(query) ||
-        snippet.notes.toLowerCase().includes(query) ||
-        snippet.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        snippet.category.toLowerCase().includes(query) ||
-        snippet.code.toLowerCase().includes(query) // Search in code content like VS Code
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        (s.title || '').toLowerCase().includes(q) ||
+        (s.notes || '').toLowerCase().includes(q) ||
+        (s.tags || []).some(t => String(t).toLowerCase().includes(q)) ||
+        (s.category || '').toLowerCase().includes(q) ||
+        (s.code || '').toLowerCase().includes(q)
       );
     }
 
-    // Apply language filter
     if (selectedLanguage !== 'all') {
-      filtered = filtered.filter(snippet => snippet.language === selectedLanguage);
+      filtered = filtered.filter(s => s.language === selectedLanguage);
     }
 
-    // Apply tag filters
     if (selectedTags.length > 0) {
-      filtered = filtered.filter(snippet =>
-        selectedTags.every(tag => snippet.tags.includes(tag))
+      filtered = filtered.filter(s =>
+        selectedTags.every(tag => (s.tags || []).includes(tag))
       );
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'language':
-          return a.language.localeCompare(b.language);
+        case 'title': return (a.title || '').localeCompare(b.title || '');
+        case 'language': return (a.language || '').localeCompare(b.language || '');
         case 'dateAdded':
-        default:
-          return new Date(b.dateAdded) - new Date(a.dateAdded);
+        default: return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0);
       }
     });
 
     return filtered;
-  }, [searchQuery, selectedLanguage, selectedTags, sortBy, showFavoritesOnly, favorites]);
+  }, [snippets, searchQuery, selectedLanguage, selectedTags, sortBy, showFavoritesOnly, favorites]);
 
-  // Toggle tag selection
   const toggleTag = (tag) => {
     setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     );
   };
 
-  // Toggle favorite
   const toggleFavorite = (snippetId) => {
     setFavorites(prev =>
-      prev.includes(snippetId)
-        ? prev.filter(id => id !== snippetId)
-        : [...prev, snippetId]
+      prev.includes(snippetId) ? prev.filter(id => id !== snippetId) : [...prev, snippetId]
     );
   };
 
-  // Check if snippet is favorite
-  const isFavorite = (snippetId) => {
-    return favorites.includes(snippetId);
-  };
+  const isFavorite = (snippetId) => favorites.includes(snippetId);
 
-  // Clear all filters
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedLanguage('all');
@@ -125,14 +186,11 @@ export const SnippetProvider = ({ children }) => {
   };
 
   const value = {
-    // Data
     allSnippets: snippets,
     filteredSnippets,
     languages,
     tags,
     categories,
-
-    // Filters
     searchQuery,
     setSearchQuery,
     selectedLanguage,
@@ -145,26 +203,26 @@ export const SnippetProvider = ({ children }) => {
     setViewMode,
     showFavoritesOnly,
     setShowFavoritesOnly,
-
-    // Favorites
     favorites,
     toggleFavorite,
     isFavorite,
-
-    // Theme
     colorScheme,
     setColorScheme,
-
-    // Actions
     clearFilters,
-
-    // Stats
     totalSnippets: snippets.length,
     filteredCount: filteredSnippets.length,
     favoritesCount: favorites.length,
-
-    // Search highlighting
     hasActiveSearch: searchQuery.trim().length > 0,
+
+    loading,
+    fetchError,
+    fetchSnippets,
+    isAuthenticated,
+    isAuthLoading,
+    loginError,
+    loginWithPassword,
+    logout,
+    addSnippet,
   };
 
   return (
