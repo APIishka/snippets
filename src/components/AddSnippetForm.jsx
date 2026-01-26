@@ -15,7 +15,7 @@ const LANGUAGES = [
   'cpp',
   'html',
   'css',
-  'english',
+  'txt',
   'other'
 ];
 

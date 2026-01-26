@@ -68,7 +68,7 @@ const languageIcons = {
       <path d="M1.3 24l11.5-11.5L24.6 24H1.3zm0-24h23.3L12.8 11.5 1.3 0z"/>
     </svg>
   ),
-  english: ({ className }) => <FileCode className={className} />,
+  txt: ({ className }) => <FileCode className={className} />,
   other: ({ className }) => <Code2 className={className} />,
 };
 

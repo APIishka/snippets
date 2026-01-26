@@ -1,9 +1,216 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Search, Palette, Heart, Lock, Unlock, Plus, ChevronDown } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import SnippetCard from '../components/SnippetCard';
 import AddSnippetModal from '../components/AddSnippetModal';
 import { getLanguageIcon, renderLanguageIcon } from '../utils/languageIcons';
+
+/**
+ * Masonry layout component that distributes snippets across columns
+ * with newest items appearing at the top, minimizing gaps between items.
+ */
+const MasonryLayout = ({ snippets, onEdit }) => {
+  const [columnCount, setColumnCount] = useState(1);
+  const [positions, setPositions] = useState({});
+  const [containerHeight, setContainerHeight] = useState(0);
+  const containerRef = useRef(null);
+  const itemRefs = useRef({});
+  const resizeTimeoutRef = useRef(null);
+  const rafRef = useRef(null);
+
+  // Update column count based on screen width
+  useEffect(() => {
+    const updateColumnCount = () => {
+      const width = window.innerWidth;
+      if (width >= 1024) {
+        setColumnCount(3);
+      } else if (width >= 768) {
+        setColumnCount(2);
+      } else {
+        setColumnCount(1);
+      }
+    };
+
+    updateColumnCount();
+
+    // Debounce resize handler for better performance
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(updateColumnCount, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Memoized height estimation based on code length only
+  const estimateHeight = useCallback((snippet) => {
+    const codeLines = (snippet.code || '').split('\n').length;
+    const baseHeight = 120; // Card structure, padding, header
+    const codeHeight = Math.max(100, codeLines * 20); // ~20px per line, min 100px
+    return baseHeight + codeHeight;
+  }, []);
+
+  // Distribute items to columns balancing heights, newest first
+  const distributedItems = useMemo(() => {
+    if (columnCount === 1) {
+      return snippets.map((snippet) => ({ snippet, column: 0 }));
+    }
+
+    const columns = Array.from({ length: columnCount }, () => []);
+    const columnHeights = Array(columnCount).fill(0);
+
+    // Distribute each snippet to the shortest column
+    snippets.forEach((snippet) => {
+      const estimatedHeight = estimateHeight(snippet);
+      let minIndex = 0;
+      for (let i = 1; i < columnCount; i++) {
+        if (columnHeights[i] < columnHeights[minIndex]) {
+          minIndex = i;
+        }
+      }
+      columns[minIndex].push(snippet);
+      columnHeights[minIndex] += estimatedHeight;
+    });
+
+    // Flatten columns into row-by-row order for rendering
+    const result = [];
+    const maxLength = Math.max(...columns.map(col => col.length));
+    for (let row = 0; row < maxLength; row++) {
+      for (let col = 0; col < columnCount; col++) {
+        if (columns[col][row]) {
+          result.push({ snippet: columns[col][row], column: col });
+        }
+      }
+    }
+    return result;
+  }, [snippets, columnCount, estimateHeight]);
+
+  // Measure actual heights and calculate absolute positions
+  useEffect(() => {
+    if (columnCount === 1 || distributedItems.length === 0) {
+      // Defer state updates to avoid synchronous setState in effect
+      requestAnimationFrame(() => {
+        setPositions({});
+        setContainerHeight(0);
+      });
+      return;
+    }
+
+    const updatePositions = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        const newPositions = {};
+        const columnHeights = Array(columnCount).fill(0);
+        const gap = 16; // 1rem = 16px
+        const containerWidth = containerRef.current?.offsetWidth || 0;
+
+        if (containerWidth <= 0) return;
+
+        const columnWidth = (containerWidth - (columnCount - 1) * gap) / columnCount;
+
+        distributedItems.forEach(({ snippet, column }) => {
+          const element = itemRefs.current[snippet.id];
+          if (element && columnWidth > 0) {
+            const height = element.offsetHeight || element.scrollHeight || 200;
+            newPositions[snippet.id] = {
+              position: 'absolute',
+              left: `${column * (columnWidth + gap)}px`,
+              top: `${columnHeights[column]}px`,
+              width: `${columnWidth}px`,
+            };
+            columnHeights[column] += height + gap;
+          }
+        });
+
+        setPositions(newPositions);
+        setContainerHeight(Math.max(...columnHeights, 0));
+      });
+    };
+
+    // Initial measurement after render
+    const timeoutId = setTimeout(updatePositions, 50);
+
+    // Handle resize with debouncing
+    const handleResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(updatePositions, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [distributedItems, columnCount]);
+
+  if (columnCount === 1) {
+    return (
+      <div className="space-y-4">
+        {snippets.map(snippet => (
+          <SnippetCard
+            key={snippet.id}
+            snippet={snippet}
+            onEdit={onEdit}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <style>{`
+        .masonry-container {
+          position: relative;
+          width: 100%;
+        }
+        .masonry-item {
+          transition: top 0.2s ease, left 0.2s ease;
+        }
+      `}</style>
+      <div
+        ref={containerRef}
+        className="masonry-container"
+        style={{ height: containerHeight || 'auto', minHeight: containerHeight || 100 }}
+      >
+        {distributedItems.map(({ snippet }) => (
+          <div
+            key={snippet.id}
+            ref={el => { if (el) itemRefs.current[snippet.id] = el; }}
+            className="masonry-item"
+            style={positions[snippet.id] || { position: 'relative', width: '100%' }}
+          >
+            <SnippetCard
+              snippet={snippet}
+              onEdit={onEdit}
+            />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+};
+
 
 const SnippetsPage = () => {
   const {
@@ -52,12 +259,11 @@ const SnippetsPage = () => {
   };
 
   const handleDeleteSnippet = async (id) => {
-    if (window.confirm('Are you sure you want to delete this snippet? This action cannot be undone.')) {
-      try {
-        await deleteSnippet(id);
-      } catch (err) {
-        alert('Failed to delete snippet: ' + (err?.message || 'Unknown error'));
-      }
+    // Confirmation is handled in AddSnippetModal, so we just delete here
+    try {
+      await deleteSnippet(id);
+    } catch (err) {
+      alert('Failed to delete snippet: ' + (err?.message || 'Unknown error'));
     }
   };
 
@@ -391,19 +597,19 @@ const SnippetsPage = () => {
               <>
                 {/* Mobile: Grouped buttons with theme */}
                 <div className="md:hidden flex items-center gap-2">
-                <button
-                  onClick={handleOpenModal}
-                  className="flex-1 px-2.5 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                  style={{
-                    background: focusBorder,
-                    color: '#fff',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add</span>
-                </button>
+                  <button
+                    onClick={handleOpenModal}
+                    className="flex-1 px-2.5 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    style={{
+                      background: focusBorder,
+                      color: '#fff',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add</span>
+                  </button>
                   <button
                     onClick={() => {
                       const schemes = ['ayu', 'vscode', 'light'];
@@ -452,19 +658,19 @@ const SnippetsPage = () => {
 
                 {/* Desktop: Separate buttons (like before) */}
                 <div className="hidden md:flex items-center justify-between gap-3">
-                <button
-                  onClick={handleOpenModal}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                  style={{
-                    background: focusBorder,
-                    color: '#fff',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New Snippet
-                </button>
+                  <button
+                    onClick={handleOpenModal}
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    style={{
+                      background: focusBorder,
+                      color: '#fff',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add New Snippet
+                  </button>
                   <button
                     onClick={() => logout()}
                     className="px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors border"
@@ -524,15 +730,7 @@ const SnippetsPage = () => {
               <p className="text-sm" style={{ color: buttonText }}>No snippets found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredSnippets.map(snippet => (
-                <SnippetCard 
-                  key={snippet.id} 
-                  snippet={snippet} 
-                  onEdit={handleEditSnippet}
-                />
-              ))}
-            </div>
+            <MasonryLayout snippets={filteredSnippets} onEdit={handleEditSnippet} />
           )}
         </div>
       </div>

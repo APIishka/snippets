@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { SnippetProvider } from './context/SnippetContext';
+import { SnippetProvider } from './context/SnippetContext.jsx';
 import HomePage from './pages/HomePage';
 import SnippetsPage from './pages/SnippetsPage';
 

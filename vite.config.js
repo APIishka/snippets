@@ -11,7 +11,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
-    }
+    },
+    extensions: ['.jsx', '.js', '.json', '.ts', '.tsx']
   },
   server: {
     port: 3000,

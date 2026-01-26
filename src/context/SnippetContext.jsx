@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { SnippetContext } from './snippetContext';
+import { SnippetContext } from './snippetContext.js';
 
 function mapRow(row) {
   return {
@@ -179,7 +179,12 @@ export const SnippetProvider = ({ children }) => {
         case 'title': return (a.title || '').localeCompare(b.title || '');
         case 'language': return (a.language || '').localeCompare(b.language || '');
         case 'dateAdded':
-        default: return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0);
+        default: {
+          // Ensure newest snippets appear first (at the top)
+          const dateA = new Date(a.dateAdded || a.date_added || 0).getTime();
+          const dateB = new Date(b.dateAdded || b.date_added || 0).getTime();
+          return dateB - dateA; // Newest first (larger date - smaller date)
+        }
       }
     });
 

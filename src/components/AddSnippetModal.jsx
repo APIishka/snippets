@@ -18,7 +18,7 @@ const LANGUAGES = [
   'cpp',
   'html',
   'css',
-  'english',
+  'txt',
   'other'
 ];
 
@@ -223,6 +223,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Paste or type your code snippet here..."
                   rows={12}
+                  spellCheck={false}
                   className="modal-input code-textarea w-full px-3 py-2 rounded-lg border text-sm font-mono focus:outline-none resize-y transition-colors md:py-2.5"
                   style={{ 
                     background: inputBg, 
@@ -235,7 +236,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
                 {code.trim() && (
                   <div className="mt-2 rounded-lg overflow-hidden border" style={{ borderColor: border }}>
                     <SyntaxHighlighter
-                      language={language === 'other' || language === 'english' ? 'text' : language}
+                      language={language === 'other' || language === 'txt' ? 'text' : language}
                       style={getTheme()}
                       showLineNumbers={false}
                       wrapLines={true}
@@ -269,6 +270,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Descriptive title"
+                  spellCheck={false}
                   className="modal-input w-full px-3 py-2 rounded-lg border text-sm focus:outline-none transition-colors"
                   style={{ 
                     background: inputBg, 
@@ -309,6 +311,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
                   value={tagsStr}
                   onChange={(e) => setTagsStr(e.target.value)}
                   placeholder="Comma-separated tags"
+                  spellCheck={false}
                   className="modal-input w-full px-3 py-2 rounded-lg border text-sm focus:outline-none transition-colors"
                   style={{ 
                     background: inputBg, 
@@ -327,6 +330,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   placeholder="Category name"
+                  spellCheck={false}
                   className="modal-input w-full px-3 py-2 rounded-lg border text-sm focus:outline-none transition-colors"
                   style={{ 
                     background: inputBg, 
@@ -345,6 +349,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Additional notes or context"
                   rows={4}
+                  spellCheck={false}
                   className="modal-input w-full px-3 py-2 rounded-lg border text-sm focus:outline-none resize-y transition-colors"
                   style={{ 
                     background: inputBg, 
