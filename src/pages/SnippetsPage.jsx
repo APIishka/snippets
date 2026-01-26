@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Search, Palette, Heart, Lock, Unlock } from 'lucide-react';
+import { Search, Palette, Heart, Lock, Unlock, Plus } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import SnippetCard from '../components/SnippetCard';
-import AddSnippetForm from '../components/AddSnippetForm';
+import AddSnippetModal from '../components/AddSnippetModal';
 import { getLanguageIcon } from '../utils/languageIcons';
 
 const SnippetsPage = () => {
@@ -30,6 +30,7 @@ const SnippetsPage = () => {
 
   const [password, setPassword] = useState('');
   const [unlockLoading, setUnlockLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleUnlock = async () => {
     if (!password.trim()) return;
@@ -225,7 +226,7 @@ const SnippetsPage = () => {
           )}
         </div>
 
-        {/* Password gate & Add form */}
+        {/* Password gate & Add button */}
         {!isAuthLoading && (
           <div className="w-full mb-8">
             {!isAuthenticated ? (
@@ -254,22 +255,53 @@ const SnippetsPage = () => {
                 {loginError && <p className="text-sm w-full" style={{ color: '#ef4444' }}>{loginError}</p>}
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium" style={{ color: buttonText }}>Add new snippet</span>
-                  <button
-                    onClick={() => logout()}
-                    className="px-3 py-2 rounded text-sm font-medium flex items-center gap-2 cursor-pointer"
-                    style={{ background: pageBackground, borderColor: inputBorder, color: buttonText, border: '1px solid' }}
-                  >
-                    <Lock className="w-4 h-4" />
-                    Lock
-                  </button>
-                </div>
-                <AddSnippetForm />
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 cursor-pointer transition-colors"
+                  style={{ 
+                    background: focusBorder, 
+                    color: '#fff',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New Snippet
+                </button>
+                <button
+                  onClick={() => logout()}
+                  className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 cursor-pointer transition-colors"
+                  style={{ 
+                    background: pageBackground, 
+                    borderColor: inputBorder, 
+                    color: buttonText, 
+                    border: '1px solid' 
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = buttonHoverText;
+                    e.currentTarget.style.borderColor = buttonHoverBorder;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = buttonText;
+                    e.currentTarget.style.borderColor = inputBorder;
+                  }}
+                >
+                  <Lock className="w-4 h-4" />
+                  Lock
+                </button>
               </div>
             )}
           </div>
+        )}
+
+        {/* Add Snippet Modal */}
+        {isAuthenticated && (
+          <AddSnippetModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={() => setIsModalOpen(false)}
+          />
         )}
 
         {/* Snippets Grid - Responsive Columns */}
