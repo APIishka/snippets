@@ -17,7 +17,7 @@ const HomePage = () => {
       {/* Letter Glitch Background */}
       <div className="absolute inset-0">
         <LetterGlitch
-          glitchColors={['#59C2FF', '#FF8F40', '#FFFFFF']}
+          glitchColors={['#256141', '#d39b1d', '#b3bf99']}
           glitchSpeed={5}
           centerVignette={true}
           outerVignette={true}
