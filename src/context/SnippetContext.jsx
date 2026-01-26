@@ -111,6 +111,28 @@ export const SnippetProvider = ({ children }) => {
     await fetchSnippets();
   }, [fetchSnippets]);
 
+  const updateSnippet = useCallback(async (id, payload) => {
+    const { data, error } = await supabase.from('snippets').update({
+      title: payload.title,
+      language: payload.language,
+      tags: payload.tags || [],
+      code: payload.code,
+      notes: payload.notes || null,
+      category: payload.category || null,
+    }).eq('id', id).select();
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      throw new Error('No snippet found with the given ID to update.');
+    }
+    await fetchSnippets();
+  }, [fetchSnippets]);
+
+  const deleteSnippet = useCallback(async (id) => {
+    const { error } = await supabase.from('snippets').delete().eq('id', id);
+    if (error) throw error;
+    await fetchSnippets();
+  }, [fetchSnippets]);
+
   const languages = useMemo(() => {
     const lang = [...new Set(snippets.map(s => s.language).filter(Boolean))].sort();
     return lang;
@@ -223,6 +245,8 @@ export const SnippetProvider = ({ children }) => {
     loginWithPassword,
     logout,
     addSnippet,
+    updateSnippet,
+    deleteSnippet,
   };
 
   return (

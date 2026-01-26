@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { ayuDarkTheme, vsCodeDarkTheme, githubLightTheme } from '../utils/colorSchemes';
@@ -22,8 +22,8 @@ const LANGUAGES = [
   'other'
 ];
 
-const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
-  const { addSnippet, colorScheme } = useSnippets();
+const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, onDelete }) => {
+  const { addSnippet, updateSnippet, colorScheme } = useSnippets();
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState('');
@@ -33,6 +33,27 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const modalRef = useRef(null);
+  const isEditMode = !!editingSnippet;
+
+  // Populate form when editing
+  useEffect(() => {
+    if (isOpen && editingSnippet) {
+      setTitle(editingSnippet.title || '');
+      setLanguage(editingSnippet.language || 'javascript');
+      setCode(editingSnippet.code || '');
+      setTagsStr((editingSnippet.tags || []).join(', '));
+      setNotes(editingSnippet.notes || '');
+      setCategory(editingSnippet.category || '');
+    } else if (isOpen && !editingSnippet) {
+      // Reset form for new snippet
+      setTitle('');
+      setLanguage('javascript');
+      setCode('');
+      setTagsStr('');
+      setNotes('');
+      setCategory('');
+    }
+  }, [isOpen, editingSnippet]);
 
   useEffect(() => {
     if (isOpen) {
@@ -94,14 +115,21 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
     setSubmitting(true);
     try {
       const tags = tagsStr.split(',').map(s => s.trim()).filter(Boolean);
-      await addSnippet({ 
+      const payload = { 
         title: title.trim(), 
         language, 
         tags, 
         code: code.trim(), 
         notes: notes.trim() || null, 
         category: category.trim() || null 
-      });
+      };
+      
+      if (isEditMode && editingSnippet && editingSnippet.id) {
+        await updateSnippet(editingSnippet.id, payload);
+      } else {
+        await addSnippet(payload);
+      }
+      
       setTitle('');
       setCode('');
       setTagsStr('');
@@ -110,7 +138,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
       onSuccess?.();
       onClose();
     } catch (err) {
-      setSubmitError(err?.message || 'Failed to add snippet.');
+      setSubmitError(err?.message || (isEditMode ? 'Failed to update snippet.' : 'Failed to add snippet.'));
     } finally {
       setSubmitting(false);
     }
@@ -153,7 +181,26 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
       >
         {/* Header */}
         <div className="sticky top-0 flex items-center justify-between px-3 py-3 md:px-5 md:py-4 border-b" style={{ borderColor: border, background: modalBg, zIndex: 10 }}>
-          <h2 className="text-base md:text-lg font-semibold" style={{ color: text }}>Add New Snippet</h2>
+          <div className="flex items-center gap-2 md:gap-3">
+            <h2 className="text-base md:text-lg font-semibold" style={{ color: text }}>
+              {isEditMode ? 'Edit Snippet' : 'Add New Snippet'}
+            </h2>
+            {isEditMode && onDelete && editingSnippet && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this snippet? This action cannot be undone.')) {
+                    onDelete(editingSnippet.id);
+                    onClose();
+                  }
+                }}
+                className="p-1.5 md:p-2 rounded transition-colors cursor-pointer hover:opacity-70"
+                style={{ color: '#ef4444' }}
+                aria-label="Delete snippet"
+              >
+                <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-1 md:p-1.5 rounded transition-colors cursor-pointer hover:opacity-70"
@@ -334,7 +381,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
                   className="flex-1 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: accent, color: '#fff' }}
                 >
-                  {submitting ? 'Adding...' : 'Add'}
+                  {submitting ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update' : 'Add')}
                 </button>
               </div>
             </div>

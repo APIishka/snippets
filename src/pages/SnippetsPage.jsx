@@ -26,13 +26,40 @@ const SnippetsPage = () => {
     loginError,
     loginWithPassword,
     logout,
+    deleteSnippet,
   } = useSnippets();
 
   const [password, setPassword] = useState('');
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSnippet, setEditingSnippet] = useState(null);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const filterDropdownRef = useRef(null);
+
+  const handleOpenModal = () => {
+    setEditingSnippet(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditSnippet = (snippet) => {
+    setEditingSnippet(snippet);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingSnippet(null);
+  };
+
+  const handleDeleteSnippet = async (id) => {
+    if (window.confirm('Are you sure you want to delete this snippet? This action cannot be undone.')) {
+      try {
+        await deleteSnippet(id);
+      } catch (err) {
+        alert('Failed to delete snippet: ' + (err?.message || 'Unknown error'));
+      }
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -364,19 +391,19 @@ const SnippetsPage = () => {
               <>
                 {/* Mobile: Grouped buttons with theme */}
                 <div className="md:hidden flex items-center gap-2">
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex-1 px-2.5 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                    style={{
-                      background: focusBorder,
-                      color: '#fff',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add</span>
-                  </button>
+                <button
+                  onClick={handleOpenModal}
+                  className="flex-1 px-2.5 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  style={{
+                    background: focusBorder,
+                    color: '#fff',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
                   <button
                     onClick={() => {
                       const schemes = ['ayu', 'vscode', 'light'];
@@ -425,19 +452,19 @@ const SnippetsPage = () => {
 
                 {/* Desktop: Separate buttons (like before) */}
                 <div className="hidden md:flex items-center justify-between gap-3">
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                    style={{
-                      background: focusBorder,
-                      color: '#fff',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add New Snippet
-                  </button>
+                <button
+                  onClick={handleOpenModal}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  style={{
+                    background: focusBorder,
+                    color: '#fff',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New Snippet
+                </button>
                   <button
                     onClick={() => logout()}
                     className="px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors border"
@@ -464,12 +491,14 @@ const SnippetsPage = () => {
           </div>
         )}
 
-        {/* Add Snippet Modal */}
+        {/* Add/Edit Snippet Modal */}
         {isAuthenticated && (
           <AddSnippetModal
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSuccess={() => setIsModalOpen(false)}
+            onClose={handleCloseModal}
+            onSuccess={handleCloseModal}
+            snippet={editingSnippet}
+            onDelete={handleDeleteSnippet}
           />
         )}
 
@@ -497,7 +526,11 @@ const SnippetsPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredSnippets.map(snippet => (
-                <SnippetCard key={snippet.id} snippet={snippet} />
+                <SnippetCard 
+                  key={snippet.id} 
+                  snippet={snippet} 
+                  onEdit={handleEditSnippet}
+                />
               ))}
             </div>
           )}

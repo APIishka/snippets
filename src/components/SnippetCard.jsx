@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Info, Copy, Check, Heart } from 'lucide-react';
+import { Info, Copy, Check, Heart, Edit } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
@@ -7,8 +7,8 @@ import { renderLanguageIcon } from '../utils/languageIcons';
 import { useSnippets } from '../context/snippetContext';
 import { ayuDarkTheme, vsCodeDarkTheme, githubLightTheme } from '../utils/colorSchemes';
 
-const SnippetCard = ({ snippet }) => {
-  const { colorScheme, searchQuery, hasActiveSearch, toggleFavorite, isFavorite } = useSnippets();
+const SnippetCard = ({ snippet, onEdit }) => {
+  const { colorScheme, searchQuery, hasActiveSearch, toggleFavorite, isFavorite, isAuthenticated } = useSnippets();
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -224,6 +224,18 @@ const SnippetCard = ({ snippet }) => {
               <Copy className="w-3.5 h-3.5" />
             )}
           </button>
+          {isAuthenticated && onEdit && (
+            <button
+              onClick={() => onEdit(snippet)}
+              className="p-1 transition-colors cursor-pointer"
+              style={{ color: textColor }}
+              onMouseEnter={(e) => e.currentTarget.style.color = cardHoverBorder}
+              onMouseLeave={(e) => e.currentTarget.style.color = textColor}
+              aria-label="Edit snippet"
+            >
+              <Edit className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
