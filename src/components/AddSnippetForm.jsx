@@ -1,7 +1,22 @@
 import { useState } from 'react';
 import { useSnippets } from '../context/snippetContext';
 
-const LANGUAGES = ['javascript', 'python', 'css', 'cpp', 'html'];
+const LANGUAGES = [
+  'javascript',
+  'python',
+  'typescript',
+  'java',
+  'rust',
+  'go',
+  'ruby',
+  'php',
+  'swift',
+  'kotlin',
+  'cpp',
+  'html',
+  'css',
+  'other'
+];
 
 const AddSnippetForm = ({ onSuccess }) => {
   const { addSnippet, colorScheme } = useSnippets();
@@ -68,7 +83,9 @@ const AddSnippetForm = ({ onSuccess }) => {
             style={{ background: isLight ? '#f6f8fa' : '#111827', borderColor: border, color: text }}
           >
             {LANGUAGES.map(l => (
-              <option key={l} value={l}>{l}</option>
+              <option key={l} value={l}>
+                {l.charAt(0).toUpperCase() + l.slice(1)}
+              </option>
             ))}
           </select>
         </div>
