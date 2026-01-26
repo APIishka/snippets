@@ -76,13 +76,13 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
   const isLight = colorScheme === 'light';
   const bg = getBgColor();
   const modalBg = isLight ? '#ffffff' : (colorScheme === 'ayu' ? '#0f1419' : '#1E1E1E');
-  const border = isLight ? '#d1d9e0' : (colorScheme === 'ayu' ? '#1f2937' : '#2d2d2d');
-  const text = isLight ? '#24292f' : '#e5e7eb';
-  const muted = isLight ? '#656d76' : '#8b949e';
-  const accent = isLight ? '#0969da' : '#25d5f8';
-  const inputBg = isLight ? '#f6f8fa' : (colorScheme === 'ayu' ? '#111827' : '#252526');
+  const border = isLight ? '#d1d9e0' : (colorScheme === 'ayu' ? '#1a1f2e' : '#2d2d2d');
+  const text = isLight ? '#24292f' : (colorScheme === 'ayu' ? '#d0d0d0' : '#e5e7eb');
+  const muted = isLight ? '#656d76' : (colorScheme === 'ayu' ? '#828C99' : '#8b949e');
+  const accent = isLight ? '#0969da' : (colorScheme === 'ayu' ? '#FF8F40' : '#25d5f8');
+  const inputBg = isLight ? '#f6f8fa' : (colorScheme === 'ayu' ? '#0f1419' : '#252526');
   const overlayBg = isLight ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.7)';
-  const placeholderColor = isLight ? 'rgba(36, 41, 47, 0.4)' : 'rgba(229, 231, 235, 0.4)';
+  const placeholderColor = isLight ? 'rgba(36, 41, 47, 0.25)' : (colorScheme === 'ayu' ? 'rgba(130, 140, 153, 0.4)' : 'rgba(229, 231, 235, 0.25)');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -124,10 +124,19 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
         .modal-input::placeholder {
           color: ${placeholderColor} !important;
           opacity: 1;
+          font-size: 0.8125rem;
+        }
+        .code-textarea {
+          min-height: 250px;
+        }
+        @media (min-width: 768px) {
+          .code-textarea {
+            min-height: 400px;
+          }
         }
       `}</style>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4"
       style={{ background: overlayBg }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -143,36 +152,35 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: border, background: modalBg, zIndex: 10 }}>
-          <h2 className="text-lg font-semibold" style={{ color: text }}>Add New Snippet</h2>
+        <div className="sticky top-0 flex items-center justify-between px-3 py-3 md:px-5 md:py-4 border-b" style={{ borderColor: border, background: modalBg, zIndex: 10 }}>
+          <h2 className="text-base md:text-lg font-semibold" style={{ color: text }}>Add New Snippet</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded transition-colors cursor-pointer hover:opacity-70"
+            className="p-1 md:p-1.5 rounded transition-colors cursor-pointer hover:opacity-70"
             style={{ color: muted }}
             aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-5">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-5">
+        <form onSubmit={handleSubmit} className="p-3 md:p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-3 md:gap-5">
             {/* Left: Code Editor */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium" style={{ color: text }}>Code *</label>
+            <div className="space-y-2 md:space-y-3">
+              <label className="block text-xs md:text-sm font-medium" style={{ color: text }}>Code *</label>
               <div className="relative">
                 <textarea
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Paste or type your code snippet here..."
-                  rows={20}
-                  className="modal-input w-full px-3 py-2.5 rounded-lg border text-sm font-mono focus:outline-none resize-y transition-colors"
+                  rows={12}
+                  className="modal-input code-textarea w-full px-3 py-2 rounded-lg border text-sm font-mono focus:outline-none resize-y transition-colors md:py-2.5"
                   style={{ 
                     background: inputBg, 
                     borderColor: border, 
                     color: text,
-                    minHeight: '400px',
                   }}
                   onFocus={(e) => e.target.style.borderColor = accent}
                   onBlur={(e) => e.target.style.borderColor = border}
@@ -206,9 +214,9 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
 
             {/* Right: Form Fields */}
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: text }}>Title *</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-1.5" style={{ color: text }}>Title *</label>
                 <input
                   type="text"
                   value={title}
@@ -226,7 +234,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: text }}>Language *</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-1.5" style={{ color: text }}>Language *</label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
@@ -248,7 +256,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: text }}>Tags</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-1.5" style={{ color: text }}>Tags</label>
                 <input
                   type="text"
                   value={tagsStr}
@@ -266,7 +274,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: text }}>Category</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-1.5" style={{ color: text }}>Category</label>
                 <input
                   type="text"
                   value={category}
@@ -284,7 +292,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5" style={{ color: text }}>Notes</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-1.5" style={{ color: text }}>Notes</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -307,11 +315,11 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
               )}
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-2 md:gap-3 pt-1">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                  className="flex-1 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors cursor-pointer"
                   style={{ 
                     background: inputBg, 
                     border: `1px solid ${border}`, 
@@ -323,7 +331,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess }) => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex-1 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: accent, color: '#fff' }}
                 >
                   {submitting ? 'Adding...' : 'Add'}
