@@ -568,30 +568,36 @@ const SnippetsPage = () => {
         {!isAuthLoading && (
           <div className="w-full mb-6 md:mb-8">
             {!isAuthenticated ? (
-              <div className="flex flex-col sm:flex-row sm:items-end gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border" style={{ background: pageBackground, borderColor: inputBorder }}>
-                <div className="flex-1 min-w-0">
-                  <label className="block text-xs md:text-sm font-medium mb-1" style={{ color: buttonText }}>Password to add or edit snippets</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); }}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUnlock())}
-                    placeholder="Enter password"
-                    className="search-input w-full px-3 py-2 rounded border text-sm focus:outline-none cursor-pointer"
-                    style={{ background: inputBackground, borderColor: inputBorder, color: inputText }}
-                  />
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border" style={{ background: pageBackground, borderColor: inputBorder }}>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-xs md:text-sm font-medium mb-1" style={{ color: buttonText }}>Password to add or edit snippets</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); }}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUnlock())}
+                      placeholder="Enter password"
+                      className="search-input w-full px-3 py-2 rounded border text-sm focus:outline-none cursor-pointer"
+                      style={{ background: inputBackground, borderColor: inputBorder, color: inputText }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleUnlock}
+                    disabled={unlockLoading}
+                    className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer disabled:opacity-60"
+                    style={{ background: focusBorder, color: '#fff' }}
+                  >
+                    <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">{unlockLoading ? 'Checking…' : 'Unlock editing'}</span>
+                    <span className="sm:hidden">{unlockLoading ? 'Checking…' : 'Unlock'}</span>
+                  </button>
                 </div>
-                <button
-                  onClick={handleUnlock}
-                  disabled={unlockLoading}
-                  className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer disabled:opacity-60"
-                  style={{ background: focusBorder, color: '#fff' }}
-                >
-                  <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">{unlockLoading ? 'Checking…' : 'Unlock editing'}</span>
-                  <span className="sm:hidden">{unlockLoading ? 'Checking…' : 'Unlock'}</span>
-                </button>
-                {loginError && <p className="text-xs md:text-sm w-full" style={{ color: '#ef4444' }}>{loginError}</p>}
+                {loginError && (
+                  <p className="text-xs md:text-sm px-3 md:px-4" style={{ color: '#ef4444' }}>
+                    {loginError}
+                  </p>
+                )}
               </div>
             ) : (
               <>
