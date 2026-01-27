@@ -46,14 +46,14 @@ const SnippetCard = ({ snippet, onEdit }) => {
 
     const checkPosition = () => {
       const cardRect = cardRef.current.getBoundingClientRect();
-      
+
       if (window.innerWidth >= 768) {
         // Desktop: check if card is in rightmost column
         const viewportWidth = window.innerWidth;
         const cardRight = cardRect.right;
         const spaceOnRight = viewportWidth - cardRight;
         const infoCardWidth = 320; // w-80 = 320px
-        
+
         // If not enough space on right, show on left
         setShowInfoOnLeft(spaceOnRight < infoCardWidth);
         setShowInfoAbove(false);
@@ -73,7 +73,7 @@ const SnippetCard = ({ snippet, onEdit }) => {
     // Check immediately and after a short delay to account for rendering
     checkPosition();
     const timeoutId = setTimeout(checkPosition, 100);
-    
+
     // Also check on resize
     window.addEventListener('resize', checkPosition);
 
@@ -189,7 +189,7 @@ const SnippetCard = ({ snippet, onEdit }) => {
         nodesToHighlight.forEach(textNode => {
           const text = textNode.textContent;
           const lowerText = text.toLowerCase();
-          
+
           if (!lowerText.includes(query)) return;
 
           const fragment = document.createDocumentFragment();
@@ -307,7 +307,7 @@ const SnippetCard = ({ snippet, onEdit }) => {
 
     const query = searchQuery.toLowerCase();
     const lowerText = text.toLowerCase();
-    
+
     if (!lowerText.includes(query)) {
       return text;
     }
@@ -354,10 +354,13 @@ const SnippetCard = ({ snippet, onEdit }) => {
       {/* Main Snippet Card */}
       <div
         ref={cardRef}
-        className="border rounded-lg p-3 transition-colors flex flex-col"
+        className="border rounded-lg p-3 transition-colors flex flex-col snippet-card-container"
+        data-snippet-card-id={snippet.id}
         style={{
           background: bgColor,
           borderColor: cardBorderColor,
+          maxHeight: '100vh', // 1.5 times viewport height
+          overflow: 'hidden', // Prevent card from scrolling, code section will scroll
         }}
         onMouseEnter={(e) => e.currentTarget.style.borderColor = cardHoverBorder}
         onMouseLeave={(e) => e.currentTarget.style.borderColor = cardBorderColor}
@@ -439,21 +442,43 @@ const SnippetCard = ({ snippet, onEdit }) => {
         </div>
 
         {/* Code with Syntax Highlighting */}
-        <div 
-          className="rounded overflow-x-auto overflow-y-hidden flex-1" 
+        <div
+          className="rounded overflow-x-auto overflow-y-auto flex-1"
           data-snippet-id={snippet.id}
           style={{
             minWidth: 0, // Allows flex item to shrink below content size
+            minHeight: 0, // Allows flex item to shrink and enable scrolling
+            maxHeight: 'calc(100vh - 100px)', // Account for header and padding
           }}
         >
           <style>{`
-            /* Firefox scrollbar - almost invisible */
+            /* Card container scrollbar - almost invisible */
+            [data-snippet-card-id="${snippet.id}"] {
+              scrollbar-width: thin;
+              scrollbar-color: ${colorScheme === 'light' ? 'rgba(225, 228, 232, 0.3) transparent' : 'rgba(74, 74, 74, 0.3) transparent'};
+            }
+            [data-snippet-card-id="${snippet.id}"]::-webkit-scrollbar {
+              width: 6px;
+            }
+            [data-snippet-card-id="${snippet.id}"]::-webkit-scrollbar-track {
+              background: transparent;
+              border-radius: 3px;
+            }
+            [data-snippet-card-id="${snippet.id}"]::-webkit-scrollbar-thumb {
+              background: ${colorScheme === 'light' ? 'rgba(225, 228, 232, 0.3)' : 'rgba(74, 74, 74, 0.3)'};
+              border-radius: 3px;
+            }
+            [data-snippet-card-id="${snippet.id}"]::-webkit-scrollbar-thumb:hover {
+              background: ${colorScheme === 'light' ? 'rgba(225, 228, 232, 0.5)' : 'rgba(74, 74, 74, 0.5)'};
+            }
+            /* Code container scrollbar - almost invisible */
             [data-snippet-id="${snippet.id}"] {
               scrollbar-width: thin;
               scrollbar-color: ${colorScheme === 'light' ? 'rgba(225, 228, 232, 0.3) transparent' : 'rgba(74, 74, 74, 0.3) transparent'};
             }
             /* Chrome, Safari, Opera scrollbar - almost invisible */
             [data-snippet-id="${snippet.id}"]::-webkit-scrollbar {
+              width: 6px;
               height: 6px;
             }
             [data-snippet-id="${snippet.id}"]::-webkit-scrollbar-track {
@@ -473,6 +498,7 @@ const SnippetCard = ({ snippet, onEdit }) => {
               scrollbar-color: ${colorScheme === 'light' ? 'rgba(225, 228, 232, 0.3) transparent' : 'rgba(74, 74, 74, 0.3) transparent'};
             }
             [data-snippet-id="${snippet.id}"] pre::-webkit-scrollbar {
+              width: 6px;
               height: 6px;
             }
             [data-snippet-id="${snippet.id}"] pre::-webkit-scrollbar-track {
@@ -498,10 +524,11 @@ const SnippetCard = ({ snippet, onEdit }) => {
               padding: 0,
               background: bgColor,
               overflowX: 'auto',
-              overflowY: 'hidden',
+              overflowY: 'auto',
               whiteSpace: 'pre',
               wordWrap: 'normal',
               wordBreak: 'normal',
+              maxHeight: '100%',
             }}
             codeTagProps={{
               style: {
@@ -525,9 +552,9 @@ const SnippetCard = ({ snippet, onEdit }) => {
           className={`absolute z-50 border rounded-lg p-3 md:p-4 shadow-xl
                      left-0 right-0
                      ${showInfoAbove ? 'bottom-full mb-2' : 'top-full mt-2'}
-                     ${showInfoOnLeft 
-                       ? 'md:top-0 md:right-full md:left-auto md:bottom-auto md:mb-0 md:mr-2 md:w-80' 
-                       : 'md:top-0 md:left-full md:right-auto md:bottom-auto md:mb-0 md:ml-2 md:w-80'}`}
+                     ${showInfoOnLeft
+              ? 'md:top-0 md:right-full md:left-auto md:bottom-auto md:mb-0 md:mr-2 md:w-80'
+              : 'md:top-0 md:left-full md:right-auto md:bottom-auto md:mb-0 md:ml-2 md:w-80'}`}
           style={{
             background: bgColor,
             borderColor: cardBorderColor,
@@ -537,10 +564,10 @@ const SnippetCard = ({ snippet, onEdit }) => {
           <div className="space-y-3 text-xs">
             {/* Notes - First, white text on dark, dark text on light */}
             {snippet.notes && (
-              <div 
-                className="text-sm leading-relaxed" 
-                style={{ 
-                  color: colorScheme === 'light' ? '#24292f' : '#ffffff' 
+              <div
+                className="text-sm leading-relaxed"
+                style={{
+                  color: colorScheme === 'light' ? '#24292f' : '#ffffff'
                 }}
               >
                 {highlightSearchMatches(snippet.notes)}
