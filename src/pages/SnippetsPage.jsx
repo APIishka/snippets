@@ -3,6 +3,7 @@ import { Search, Palette, Heart, Lock, Unlock, Plus, ChevronDown } from 'lucide-
 import { useSnippets } from '../context/snippetContext';
 import SnippetCard from '../components/SnippetCard';
 import AddSnippetModal from '../components/AddSnippetModal';
+import BurgerNav from '../components/BurgerNav';
 import { getLanguageIcon, renderLanguageIcon } from '../utils/languageIcons';
 
 /**
@@ -328,19 +329,21 @@ const SnippetsPage = () => {
           font-size: 0.875rem;
         }
       `}</style>
-      <div className="w-full px-4 md:px-8 py-6 md:py-12">
+      <div className="w-full max-w-[1600px] mx-auto">
+        {/* Main content with padding */}
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-5 md:pt-6 pb-20 md:pb-24">
         {/* Search & Filter */}
-        <div className="w-full mb-8 md:mb-12 space-y-3 md:space-y-4">
-          {/* Search Bar & Theme Toggle */}
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="relative flex-1">
+        <div className="w-full mb-4 sm:mb-6 md:mb-8 space-y-3 md:space-y-4">
+          {/* Row 1: Search only (filters on next row on big screens) */}
+          <div className="w-full">
+            <div className="relative flex-1 min-w-0 w-full">
               <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5" style={{ color: inputPlaceholder }} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search in code, titles, notes, tags..."
-                className="search-input w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2 md:py-4 border rounded-lg text-sm md:text-base font-medium focus:outline-none transition-colors"
+                className="search-input w-full pl-9 sm:pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 sm:py-3 md:py-3 border rounded-lg text-sm md:text-base font-medium focus:outline-none transition-colors min-h-[44px] sm:min-h-0"
                 style={{
                   background: inputBackground,
                   borderColor: inputBorder,
@@ -350,46 +353,16 @@ const SnippetsPage = () => {
                 onBlur={(e) => e.target.style.borderColor = inputBorder}
               />
             </div>
-
-            {/* Color Scheme Toggle - Desktop only */}
-            <button
-              onClick={() => {
-                const schemes = ['ayu', 'vscode', 'light'];
-                const currentIndex = schemes.indexOf(colorScheme);
-                const nextIndex = (currentIndex + 1) % schemes.length;
-                setColorScheme(schemes[nextIndex]);
-              }}
-              className="hidden md:flex px-4 py-4 border rounded-lg transition-colors items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
-              style={{
-                background: pageBackground,
-                borderColor: inputBorder,
-                color: buttonText,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = buttonHoverText;
-                e.currentTarget.style.borderColor = buttonHoverBorder;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = buttonText;
-                e.currentTarget.style.borderColor = inputBorder;
-              }}
-              title="Switch color scheme"
-            >
-              <Palette className="w-5 h-5" />
-              <span className="text-sm font-semibold">
-                {colorScheme === 'ayu' ? 'Ayu Dark' : colorScheme === 'vscode' ? 'VS Code' : 'Light'}
-              </span>
-            </button>
           </div>
 
-          {/* Language Filter - Dropdown on mobile, buttons on desktop */}
+          {/* Row 2: Language & Favorites filter - dropdown on mobile, buttons on desktop */}
           {languages.length > 0 && (
             <>
               {/* Mobile: Dropdown */}
               <div className="md:hidden relative" ref={filterDropdownRef}>
                 <button
                   onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm font-medium flex items-center justify-between cursor-pointer"
+                  className="w-full px-3 py-2.5 min-h-[44px] border rounded-lg text-sm font-medium flex items-center justify-between cursor-pointer"
                   style={{
                     background: inputBackground,
                     borderColor: inputBorder,
@@ -562,14 +535,52 @@ const SnippetsPage = () => {
               </div>
             </>
           )}
+
+          {/* Row 3 (desktop): Add New Snippet + Theme on left, Lock on right */}
+          {!isAuthLoading && isAuthenticated && (
+            <div className="hidden md:flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleOpenModal}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  style={{ background: focusBorder, color: '#fff' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <Plus className="w-4 h-4" />
+                  Add New Snippet
+                </button>
+                <button
+                  onClick={() => setColorScheme(['ayu', 'vscode', 'light'][(['ayu', 'vscode', 'light'].indexOf(colorScheme) + 1) % 3])}
+                  className="p-2 border rounded-lg cursor-pointer flex-shrink-0"
+                  style={{ background: pageBackground, borderColor: inputBorder, color: buttonText }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = buttonHoverText; e.currentTarget.style.borderColor = buttonHoverBorder; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = buttonText; e.currentTarget.style.borderColor = inputBorder; }}
+                  title="Switch color scheme"
+                >
+                  <Palette className="w-4 h-4" />
+                </button>
+              </div>
+              <button
+                onClick={() => logout()}
+                className="px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors border shrink-0"
+                style={{ background: pageBackground, borderColor: inputBorder, color: buttonText }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = buttonHoverText; e.currentTarget.style.borderColor = buttonHoverBorder; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = buttonText; e.currentTarget.style.borderColor = inputBorder; }}
+              >
+                <Lock className="w-4 h-4" />
+                Lock
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Password gate & Add button */}
+        {/* Password gate & Add button (mobile: Add/Theme/Lock when authenticated) */}
         {!isAuthLoading && (
-          <div className="w-full mb-6 md:mb-8">
+          <div className="w-full mb-4 sm:mb-6 md:mb-8">
             {!isAuthenticated ? (
               <div className="space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-end gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border" style={{ background: pageBackground, borderColor: inputBorder }}>
+                <div className="flex flex-col sm:flex-row sm:items-end gap-2.5 md:gap-3 p-3 sm:p-4 rounded-lg border" style={{ background: pageBackground, borderColor: inputBorder }}>
                   <div className="flex-1 min-w-0">
                     <label className="block text-xs md:text-sm font-medium mb-1" style={{ color: buttonText }}>Password to add or edit snippets</label>
                     <input
@@ -578,23 +589,23 @@ const SnippetsPage = () => {
                       onChange={(e) => { setPassword(e.target.value); }}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUnlock())}
                       placeholder="Enter password"
-                      className="search-input w-full px-3 py-2 rounded border text-sm focus:outline-none cursor-pointer"
+                      className="search-input w-full px-3 py-2.5 sm:py-2 rounded border text-sm focus:outline-none min-h-[44px] sm:min-h-0"
                       style={{ background: inputBackground, borderColor: inputBorder, color: inputText }}
                     />
                   </div>
                   <button
                     onClick={handleUnlock}
                     disabled={unlockLoading}
-                    className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer disabled:opacity-60"
+                    className="w-full sm:w-auto px-3 md:px-4 py-2.5 sm:py-2 rounded text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer disabled:opacity-60 min-h-[44px] sm:min-h-0"
                     style={{ background: focusBorder, color: '#fff' }}
                   >
-                    <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">{unlockLoading ? 'Checking…' : 'Unlock editing'}</span>
                     <span className="sm:hidden">{unlockLoading ? 'Checking…' : 'Unlock'}</span>
                   </button>
                 </div>
                 {loginError && (
-                  <p className="text-xs md:text-sm px-3 md:px-4" style={{ color: '#ef4444' }}>
+                  <p className="text-xs md:text-sm px-1 sm:px-0" style={{ color: '#ef4444' }}>
                     {loginError}
                   </p>
                 )}
@@ -605,7 +616,7 @@ const SnippetsPage = () => {
                 <div className="md:hidden flex items-center gap-2">
                   <button
                     onClick={handleOpenModal}
-                    className="flex-1 px-2.5 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    className="flex-1 min-h-[44px] px-2.5 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                     style={{
                       background: focusBorder,
                       color: '#fff',
@@ -623,7 +634,7 @@ const SnippetsPage = () => {
                       const nextIndex = (currentIndex + 1) % schemes.length;
                       setColorScheme(schemes[nextIndex]);
                     }}
-                    className="p-2 border rounded-lg transition-colors cursor-pointer flex-shrink-0"
+                    className="p-2 min-h-[44px] min-w-[44px] border rounded-lg transition-colors cursor-pointer flex-shrink-0 flex items-center justify-center"
                     style={{
                       background: pageBackground,
                       borderColor: inputBorder,
@@ -643,7 +654,7 @@ const SnippetsPage = () => {
                   </button>
                   <button
                     onClick={() => logout()}
-                    className="p-2 rounded-lg text-xs font-medium flex items-center justify-center cursor-pointer transition-colors border flex-shrink-0"
+                    className="p-2 min-h-[44px] min-w-[44px] rounded-lg text-xs font-medium flex items-center justify-center cursor-pointer transition-colors border flex-shrink-0"
                     style={{
                       background: pageBackground,
                       borderColor: inputBorder,
@@ -659,43 +670,6 @@ const SnippetsPage = () => {
                     }}
                   >
                     <Lock className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Desktop: Separate buttons (like before) */}
-                <div className="hidden md:flex items-center justify-between gap-3">
-                  <button
-                    onClick={handleOpenModal}
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                    style={{
-                      background: focusBorder,
-                      color: '#fff',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add New Snippet
-                  </button>
-                  <button
-                    onClick={() => logout()}
-                    className="px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors border"
-                    style={{
-                      background: pageBackground,
-                      borderColor: inputBorder,
-                      color: buttonText,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = buttonHoverText;
-                      e.currentTarget.style.borderColor = buttonHoverBorder;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = buttonText;
-                      e.currentTarget.style.borderColor = inputBorder;
-                    }}
-                  >
-                    <Lock className="w-4 h-4" />
-                    Lock
                   </button>
                 </div>
               </>
@@ -738,6 +712,7 @@ const SnippetsPage = () => {
           ) : (
             <MasonryLayout snippets={filteredSnippets} onEdit={handleEditSnippet} />
           )}
+        </div>
         </div>
       </div>
     </div>
