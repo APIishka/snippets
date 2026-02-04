@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Filter } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import { getThemeColors } from '../utils/themeColors';
 import ContentListLayout from '../components/ContentListLayout';
-import UnifiedContentCard from '../components/UnifiedContentCard';
+import MasonryTextSnippets from '../components/MasonryTextSnippets';
 import ContentModal from '../components/ContentModal';
 
 const TextSnippetsPage = () => {
@@ -15,6 +15,9 @@ const TextSnippetsPage = () => {
     textSnippetsError,
     textSnippetsTags,
     textSnippetsCategories,
+    textSnippetsShowFavoritesOnly,
+    setTextSnippetsShowFavoritesOnly,
+    textSnippetsFavoritesCount,
     contentSearchQuery,
     setContentSearchQuery,
     contentSelectedTags,
@@ -26,11 +29,15 @@ const TextSnippetsPage = () => {
     isAuthLoading,
     fetchContent,
     deleteTextSnippet,
+    colorScheme,
   } = useSnippets();
+
+  const theme = getThemeColors(colorScheme);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   const itemsToShow = useMemo(() => {
     if (!selectedCategory) return filteredTextSnippets;
@@ -86,6 +93,15 @@ const TextSnippetsPage = () => {
         categories={textSnippetsCategories}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
+        categoryAsDropdown={false}
+        showFavoritesOnly={textSnippetsShowFavoritesOnly}
+        onToggleFavorites={() => setTextSnippetsShowFavoritesOnly(!textSnippetsShowFavoritesOnly)}
+        favoritesCount={textSnippetsFavoritesCount}
+        hideSort={true}
+        filtersInModalOnMobile={true}
+        filterModalOpen={filterModalOpen}
+        onFilterModalOpenChange={setFilterModalOpen}
+        hideCountInFilterRow={true}
         loading={textSnippetsLoading}
         error={textSnippetsError}
         onRetry={() => fetchContent()}
@@ -94,34 +110,39 @@ const TextSnippetsPage = () => {
         theme="dark"
         emptyMessage="No text snippets"
       >
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => setFilterModalOpen(true)}
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm border cursor-pointer hover:opacity-90 shrink-0"
+              style={{ background: theme.pageBackground, borderColor: theme.inputBorder, color: theme.textColor }}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </button>
+            <span className="text-xs tabular-nums shrink-0 md:px-4" style={{ color: theme.buttonText }}>
+              {itemsToShow.length} of {textSnippets.length}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => { setEditingItem(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shrink-0"
             style={{ background: theme.focusBorder, color: '#fff' }}
           >
             <Plus className="w-4 h-4" />
-            Add snippet
+            Add message
           </button>
         </div>
         {itemsToShow.length === 0 ? (
           <p className="text-sm py-8" style={{ color: '#8b949e' }}>No text snippets found.</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {itemsToShow.map((item) => (
-              <UnifiedContentCard
-                key={item.id}
-                item={item}
-                contentType="text_snippet"
-                title={item.text?.slice(0, 60) + (item.text?.length > 60 ? '…' : '')}
-                languageLabel={item.category || item.language || null}
-                bodyText={item.text || ''}
-                onEdit={handleEdit}
-                isAuthenticated={isAuthenticated}
-              />
-            ))}
-          </div>
+          <MasonryTextSnippets
+            items={itemsToShow}
+            onEdit={handleEdit}
+            isAuthenticated={isAuthenticated}
+          />
         )}
       </ContentListLayout>
       <ContentModal

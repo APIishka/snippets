@@ -269,17 +269,14 @@ const SnippetsPage = () => {
   };
 
   useEffect(() => {
+    if (!isFilterDropdownOpen) return;
     const handleClickOutside = (event) => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
         setIsFilterDropdownOpen(false);
       }
     };
-    if (isFilterDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, [isFilterDropdownOpen]);
 
   const handleUnlock = async () => {
@@ -399,7 +396,7 @@ const SnippetsPage = () => {
                     <ChevronDown className={`w-4 h-4 transition-transform ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {isFilterDropdownOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto" style={{ background: modalBg, borderColor: inputBorder }}>
+                    <div className="scrollbar-subtle absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto" style={{ background: modalBg, borderColor: inputBorder }}>
                       <button
                         onClick={() => {
                           setSelectedLanguage('all');

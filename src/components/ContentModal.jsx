@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 
@@ -19,8 +19,8 @@ const FIELD_CONFIG = {
   ],
   text_snippet: [
     { key: 'text', label: 'Text', type: 'textarea', required: true },
-    { key: 'language', label: 'Language', type: 'text' },
-    { key: 'category', label: 'Category', type: 'text' },
+    { key: 'language', label: 'Language', type: 'select', options: WORD_LANGUAGES },
+    { key: 'category', label: 'Category', type: 'select', optionsKey: 'textSnippetsCategories' },
     { key: 'notes', label: 'Notes', type: 'textarea' },
     { key: 'tags', label: 'Tags (comma-separated)', type: 'tags' },
   ],
@@ -40,6 +40,15 @@ const FIELD_CONFIG = {
 
 const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguageFrom, initialLanguageTo }) => {
   const ctx = useSnippets();
+  const textSnippetsCategories = ctx.textSnippetsCategories || [];
+  const fields = useMemo(() => {
+    const base = FIELD_CONFIG[type] || [];
+    return base.map((f) => {
+      if (f.optionsKey === 'textSnippetsCategories')
+        return { ...f, type: 'select', options: ['', ...textSnippetsCategories] };
+      return f;
+    });
+  }, [type, textSnippetsCategories]);
   const add = {
     word: ctx.addWord,
     text_snippet: ctx.addTextSnippet,
@@ -59,7 +68,6 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
     instruction: ctx.deleteInstruction,
   }[type];
 
-  const fields = FIELD_CONFIG[type] || [];
   const [form, setForm] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -107,7 +115,7 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
 
   const getPayload = () => {
     const payload = { ...form };
-    ['content', 'translation', 'notes', 'language_from', 'language_to'].forEach((k) => {
+    ['content', 'translation', 'notes', 'text', 'language', 'category', 'language_from', 'language_to'].forEach((k) => {
       if (payload[k] != null && typeof payload[k] === 'string') payload[k] = payload[k].trim();
     });
     if (payload.tags !== undefined) {
@@ -190,7 +198,7 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
           </button>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="p-4 overflow-y-auto space-y-3 flex-1">
+          <div className="scrollbar-subtle p-4 overflow-y-auto space-y-3 flex-1">
             {fields.map(({ key, label, type: fieldType, required, options }) => (
               <div key={key}>
                 <label className="block text-sm font-medium mb-1" style={{ color: muted }}>
@@ -204,8 +212,8 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
                     className="w-full px-3 py-2 rounded border text-sm focus:outline-none"
                     style={{ background: bg, borderColor: border, color: text }}
                   >
-                    <option value="">Select…</option>
-                    {options.map((opt) => (
+                    <option value="">{key === 'category' ? '—' : 'Select…'}</option>
+                    {options.filter(Boolean).map((opt) => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
                   </select>

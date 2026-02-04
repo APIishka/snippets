@@ -30,7 +30,6 @@ const ContentCard = ({
   const border = theme === 'light' ? '#d0d7de' : '#1a1f2e';
   const text = theme === 'light' ? '#24292f' : '#e5e7eb';
   const muted = theme === 'light' ? '#57606a' : '#8b949e';
-  const accent = theme === 'light' ? '#0969da' : '#FF8F40';
 
   const handleCopy = async () => {
     const toCopy = typeof onCopyText === 'function' ? onCopyText(item) : primary;

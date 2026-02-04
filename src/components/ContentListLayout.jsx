@@ -1,10 +1,13 @@
-import { Search } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, Heart, Filter, X, ChevronDown, Tag } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import { getThemeColors } from '../utils/themeColors';
 
 /**
  * Reusable layout for admin content pages: burger + search (same length as code page) + theme,
  * then tag/category filters, sort, and list area.
+ * categoryAsDropdown: render category as a <select> (e.g. for messages page).
+ * showFavoritesOnly, onToggleFavorites, favoritesCount: show Favorites filter button (like code page).
  */
 const ContentListLayout = ({
   title,
@@ -19,6 +22,15 @@ const ContentListLayout = ({
   categories = null,
   selectedCategory = null,
   onCategoryChange = null,
+  categoryAsDropdown = false,
+  showFavoritesOnly = null,
+  onToggleFavorites = null,
+  favoritesCount = 0,
+  hideSort = false,
+  filtersInModalOnMobile = false,
+  filterModalOpen: filterModalOpenProp = null,
+  onFilterModalOpenChange = null,
+  hideCountInFilterRow = false,
   children,
   emptyMessage = 'No items',
   loading,
@@ -37,6 +49,182 @@ const ContentListLayout = ({
   const muted = theme.buttonText;
   const accent = theme.focusBorder;
   const placeholderColor = theme.placeholderColor;
+  const [filterModalOpenInternal, setFilterModalOpenInternal] = useState(false);
+  const isFilterModalControlled = filterModalOpenProp !== null && filterModalOpenProp !== undefined && typeof onFilterModalOpenChange === 'function';
+  const filterModalOpen = isFilterModalControlled ? filterModalOpenProp : filterModalOpenInternal;
+  const setFilterModalOpen = isFilterModalControlled ? onFilterModalOpenChange : setFilterModalOpenInternal;
+  const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false);
+  const tagsDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!tagsDropdownOpen) return;
+    const handleClickOutside = (e) => {
+      if (tagsDropdownRef.current && !tagsDropdownRef.current.contains(e.target)) {
+        setTagsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
+  }, [tagsDropdownOpen]);
+
+  const hasAnyFilters = (categories?.length > 0 && onCategoryChange) || (showFavoritesOnly != null && onToggleFavorites) || tags.length > 0;
+
+  const filterControls = (
+    <>
+      {categories?.length > 0 && onCategoryChange && categoryAsDropdown && (
+        <select
+          value={selectedCategory ?? ''}
+          onChange={(e) => onCategoryChange(e.target.value === '' ? null : e.target.value)}
+          className="px-4 py-2 rounded-lg font-semibold text-sm border cursor-pointer focus:outline-none transition-colors min-w-[8rem]"
+          style={{
+            background: inputBg,
+            borderColor: border,
+            color: theme.inputText,
+          }}
+          onFocus={(e) => { e.target.style.borderColor = accent; }}
+          onBlur={(e) => { e.target.style.borderColor = border; }}
+        >
+          <option value="">All</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      )}
+      {showFavoritesOnly != null && onToggleFavorites && (
+        <button
+          type="button"
+          onClick={() => onToggleFavorites()}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer ${showFavoritesOnly ? '' : 'border'}`}
+          style={
+            showFavoritesOnly
+              ? { background: '#ef4444', color: '#fff' }
+              : { background: pageBg, borderColor: border, color: text }
+          }
+          onMouseEnter={(e) => {
+            if (!showFavoritesOnly) {
+              e.currentTarget.style.color = '#ef4444';
+              e.currentTarget.style.borderColor = '#ef4444';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showFavoritesOnly) {
+              e.currentTarget.style.color = text;
+              e.currentTarget.style.borderColor = border;
+            }
+          }}
+        >
+          <Heart className="w-4 h-4" fill={showFavoritesOnly ? '#fff' : 'none'} />
+          Favorites {favoritesCount > 0 && `(${favoritesCount})`}
+        </button>
+      )}
+      {categories?.length > 0 && onCategoryChange && !categoryAsDropdown && (
+        <>
+          <button
+            type="button"
+            onClick={() => onCategoryChange(null)}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${!selectedCategory ? '' : 'border'}`}
+            style={
+              !selectedCategory
+                ? { background: accent, color: '#fff' }
+                : { background: pageBg, borderColor: border, color: text }
+            }
+            onMouseEnter={(e) => {
+              if (selectedCategory) {
+                e.currentTarget.style.color = theme.buttonHoverText;
+                e.currentTarget.style.borderColor = theme.buttonHoverBorder;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedCategory) {
+                e.currentTarget.style.color = text;
+                e.currentTarget.style.borderColor = border;
+              }
+            }}
+          >
+            All
+          </button>
+          {categories.map((cat) => {
+            const selected = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => onCategoryChange(cat)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${selected ? '' : 'border'}`}
+                style={
+                  selected
+                    ? { background: accent, color: '#fff' }
+                    : { background: pageBg, borderColor: border, color: text }
+                }
+                onMouseEnter={(e) => {
+                  if (!selected) {
+                    e.currentTarget.style.color = theme.buttonHoverText;
+                    e.currentTarget.style.borderColor = theme.buttonHoverBorder;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!selected) {
+                    e.currentTarget.style.color = text;
+                    e.currentTarget.style.borderColor = border;
+                  }
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </>
+      )}
+      {tags.length > 0 && onToggleTag && (
+        <div className="relative" ref={tagsDropdownRef}>
+          <button
+            type="button"
+            onClick={() => setTagsDropdownOpen((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm border cursor-pointer hover:opacity-90 min-w-[6rem] justify-between"
+            style={{
+              background: selectedTags.length > 0 ? accent : pageBg,
+              borderColor: border,
+              color: selectedTags.length > 0 ? '#fff' : text,
+            }}
+          >
+            <Tag className="w-4 h-4 shrink-0" />
+            <span className="truncate">Tags</span>
+            {selectedTags.length > 0 && (
+              <span className="shrink-0 text-xs opacity-90">({selectedTags.length})</span>
+            )}
+            <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${tagsDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {tagsDropdownOpen && (
+            <div
+              className="scrollbar-subtle absolute top-full left-0 mt-1 border rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto min-w-[10rem]"
+              style={{ background: pageBg, borderColor: border }}
+            >
+              {tags.map((tag) => {
+                const selected = selectedTags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      onToggleTag(tag);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity border-b last:border-b-0"
+                    style={{
+                      borderColor: border,
+                      background: selected ? accent : 'transparent',
+                      color: selected ? '#fff' : text,
+                    }}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen w-full" style={{ background: pageBg, color: text }}>
@@ -76,116 +264,52 @@ const ContentListLayout = ({
 
         <div className="flex flex-wrap items-center gap-2">
           {extraFilters}
-          {categories?.length > 0 && onCategoryChange && (
+          {filtersInModalOnMobile && hasAnyFilters ? (
             <>
-              <button
-                type="button"
-                onClick={() => onCategoryChange(null)}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${!selectedCategory ? '' : 'border'}`}
-                style={
-                  !selectedCategory
-                    ? { background: accent, color: '#fff' }
-                    : { background: pageBg, borderColor: border, color: text }
-                }
-                onMouseEnter={(e) => {
-                  if (selectedCategory) {
-                    e.currentTarget.style.color = theme.buttonHoverText;
-                    e.currentTarget.style.borderColor = theme.buttonHoverBorder;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedCategory) {
-                    e.currentTarget.style.color = text;
-                    e.currentTarget.style.borderColor = border;
-                  }
-                }}
-              >
-                All
-              </button>
-              {categories.map((cat) => {
-                const selected = selectedCategory === cat;
-                return (
+              {!isFilterModalControlled && (
+                <div className="md:hidden">
                   <button
-                    key={cat}
                     type="button"
-                    onClick={() => onCategoryChange(cat)}
-                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${selected ? '' : 'border'}`}
-                    style={
-                      selected
-                        ? { background: accent, color: '#fff' }
-                        : { background: pageBg, borderColor: border, color: text }
-                    }
-                    onMouseEnter={(e) => {
-                      if (!selected) {
-                        e.currentTarget.style.color = theme.buttonHoverText;
-                        e.currentTarget.style.borderColor = theme.buttonHoverBorder;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!selected) {
-                        e.currentTarget.style.color = text;
-                        e.currentTarget.style.borderColor = border;
-                      }
-                    }}
+                    onClick={() => setFilterModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm border cursor-pointer hover:opacity-90"
+                    style={{ background: pageBg, borderColor: border, color: text }}
                   >
-                    {cat}
+                    <Filter className="w-4 h-4" />
+                    Filters
                   </button>
-                );
-              })}
+                </div>
+              )}
+              <div className="hidden md:flex flex-wrap items-center gap-2">
+                {filterControls}
+              </div>
             </>
+          ) : (
+            hasAnyFilters ? filterControls : null
           )}
-          {tags.map((tag) => {
-            const selected = selectedTags.includes(tag);
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => onToggleTag?.(tag)}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${selected ? '' : 'border'}`}
-                style={
-                  selected
-                    ? { background: accent, color: '#fff' }
-                    : { background: pageBg, borderColor: border, color: text }
-                }
-                onMouseEnter={(e) => {
-                  if (!selected) {
-                    e.currentTarget.style.color = theme.buttonHoverText;
-                    e.currentTarget.style.borderColor = theme.buttonHoverBorder;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!selected) {
-                    e.currentTarget.style.color = text;
-                    e.currentTarget.style.borderColor = border;
-                  }
-                }}
-              >
-                {tag}
-              </button>
-            );
-          })}
-          {(totalCount != null || filteredCount != null) && (
+          {!hideCountInFilterRow && (totalCount != null || filteredCount != null) && (
             <span className="text-xs tabular-nums shrink-0" style={{ color: muted }}>
               {filteredCount != null && totalCount != null ? `${filteredCount} of ${totalCount}` : totalCount != null ? `${totalCount} items` : ''}
             </span>
           )}
-          <div className="flex-1 min-w-0 flex justify-end">
-          <select
-            value={sortBy}
-            onChange={(e) => onSortChange?.(e.target.value)}
-            className="w-full md:w-40 md:shrink-0 min-w-0 max-w-full px-4 py-2 rounded-lg font-semibold text-sm border cursor-pointer focus:outline-none transition-colors"
-            style={{
-              background: inputBg,
-              borderColor: border,
-              color: theme.inputText,
-            }}
-            onFocus={(e) => { e.target.style.borderColor = accent; }}
-            onBlur={(e) => { e.target.style.borderColor = border; }}
-          >
-            <option value="dateAdded">Newest first</option>
-            <option value="title">A–Z</option>
-          </select>
-          </div>
+          {!hideSort && (
+            <div className="flex-1 min-w-0 flex justify-end">
+              <select
+                value={sortBy}
+                onChange={(e) => onSortChange?.(e.target.value)}
+                className="w-full md:w-40 md:shrink-0 min-w-0 max-w-full px-4 py-2 rounded-lg font-semibold text-sm border cursor-pointer focus:outline-none transition-colors"
+                style={{
+                  background: inputBg,
+                  borderColor: border,
+                  color: theme.inputText,
+                }}
+                onFocus={(e) => { e.target.style.borderColor = accent; }}
+                onBlur={(e) => { e.target.style.borderColor = border; }}
+              >
+                <option value="dateAdded">Newest first</option>
+                <option value="title">A–Z</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -211,6 +335,37 @@ const ContentListLayout = ({
       )}
       {!loading && !error && children}
       </div>
+
+      {filtersInModalOnMobile && filterModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setFilterModalOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="rounded-lg border w-full max-w-md shadow-xl p-4"
+            style={{ background: pageBg, borderColor: border, color: text }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">Filters</h3>
+              <button
+                type="button"
+                onClick={() => setFilterModalOpen(false)}
+                className="p-1 rounded hover:opacity-80"
+                style={{ color: muted }}
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              {filterControls}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

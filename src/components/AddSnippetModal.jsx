@@ -172,7 +172,7 @@ const AddSnippetModal = ({ isOpen, onClose, onSuccess, snippet: editingSnippet, 
     >
       <div
         ref={modalRef}
-        className="w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg shadow-2xl"
+        className="scrollbar-subtle w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-lg shadow-2xl"
         style={{ 
           background: modalBg,
           border: `1px solid ${border}`,

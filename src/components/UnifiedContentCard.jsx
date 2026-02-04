@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Info, Heart, Edit } from 'lucide-react';
+import { Info, Heart, Edit, Copy, Check } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 
 /**
@@ -53,6 +53,18 @@ const UnifiedContentCard = ({
   const hasContentSearch = contentSearchQuery && contentSearchQuery.trim().length > 0;
   const highlight = (t) => (hasContentSearch ? highlightSearchMatches(t, contentSearchQuery, colorScheme) : t);
   const [showDetails, setShowDetails] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    const toCopy = bodyText ?? item.text ?? item.content ?? '';
+    if (!toCopy) return;
+    try {
+      await navigator.clipboard.writeText(toCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+  };
   const [showInfoAbove, setShowInfoAbove] = useState(false);
   const [showInfoOnLeft, setShowInfoOnLeft] = useState(false);
   const infoCardRef = useRef(null);
@@ -125,7 +137,7 @@ const UnifiedContentCard = ({
             {highlight(bodyText)}
           </div>
           <div className="flex items-center gap-0.5 flex-shrink-0">
-            {languageLabel && (
+            {languageLabel && contentType !== 'text_snippet' && (
               <span className="text-[10px] px-1 py-0.5 rounded border font-medium" style={{ color: languageBadgeColor, borderColor: languageBadgeBorder }}>
                 {languageLabel}
               </span>
@@ -135,6 +147,9 @@ const UnifiedContentCard = ({
             </button>
             <button type="button" onClick={() => setShowDetails(!showDetails)} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Toggle details">
               <Info className="w-3 h-3" />
+            </button>
+            <button type="button" onClick={handleCopy} className="p-1 cursor-pointer" style={{ color: copied ? '#22c55e' : textColor }} aria-label="Copy" title="Copy">
+              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
             </button>
             {isAuthenticated && onEdit && (
               <button type="button" onClick={() => onEdit(item)} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Edit">
@@ -157,6 +172,11 @@ const UnifiedContentCard = ({
                 {[item.language_from, item.language_to].filter(Boolean).join(' → ')}
               </div>
             )}
+            {contentType === 'text_snippet' && (item.category || item.language) && (
+              <div className="mb-2" style={{ color: textColor }}>
+                {[item.category, item.language].filter(Boolean).join(' · ')}
+              </div>
+            )}
             {notes && <div className="mb-2" style={{ color: bodyColor }}>{highlight(notes)}</div>}
             <div className="flex flex-wrap gap-1.5">
               {tags.map((tag, index) => (
@@ -170,7 +190,7 @@ const UnifiedContentCard = ({
     );
   }
 
-  const titleDisplay = title != null ? title : (item.content ?? item.text ?? '');
+  const isMessageCard = contentType === 'text_snippet';
 
   return (
     <div className="relative md:group">
@@ -182,14 +202,21 @@ const UnifiedContentCard = ({
           borderColor: cardBorderColor,
         }}
       >
-        <div className="flex items-start justify-between mb-2 gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <h3 className="text-xs font-normal leading-tight break-words" style={{ color: textColor }} title={title ?? (item.content ?? item.text)}>
-              {highlight(titleDisplay)}
-            </h3>
-          </div>
-          <div className="flex items-center gap-1 ml-3 flex-shrink-0">
-            {languageLabel && (
+        <div className={`flex items-start justify-between gap-2 ${isMessageCard ? '' : 'mb-2'}`}>
+          {!isMessageCard && (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <h3 className="text-xs font-normal leading-tight break-words" style={{ color: textColor }} title={title ?? (item.content ?? item.text)}>
+                {highlight(title != null ? title : (item.content ?? item.text ?? ''))}
+              </h3>
+            </div>
+          )}
+          {isMessageCard && (
+            <div className="flex-1 min-w-0 rounded overflow-x-auto text-sm whitespace-pre-wrap break-words" style={{ color: bodyColor }}>
+              {highlight(bodyText)}
+            </div>
+          )}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {languageLabel && !isMessageCard && (
               <span className="text-[10px] px-1.5 py-0.5 rounded border font-medium" style={{ color: languageBadgeColor, borderColor: languageBadgeBorder }}>
                 {languageLabel}
               </span>
@@ -200,6 +227,9 @@ const UnifiedContentCard = ({
             <button type="button" onClick={() => setShowDetails(!showDetails)} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Toggle details">
               <Info className="w-3.5 h-3.5" />
             </button>
+            <button type="button" onClick={handleCopy} className="p-1 cursor-pointer" style={{ color: copied ? '#22c55e' : textColor }} aria-label="Copy" title="Copy">
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
             {isAuthenticated && onEdit && (
               <button type="button" onClick={() => onEdit(item)} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Edit">
                 <Edit className="w-3.5 h-3.5" />
@@ -207,12 +237,14 @@ const UnifiedContentCard = ({
             )}
           </div>
         </div>
-        <div
-          className="rounded overflow-x-auto text-sm whitespace-pre-wrap break-words"
-          style={{ minWidth: 0, color: bodyColor }}
-        >
-          {highlight(bodyText)}
-        </div>
+        {!isMessageCard && (
+          <div
+            className="rounded overflow-x-auto text-sm whitespace-pre-wrap break-words"
+            style={{ minWidth: 0, color: bodyColor }}
+          >
+            {highlight(bodyText)}
+          </div>
+        )}
       </div>
 
       {showDetails && (
@@ -228,6 +260,11 @@ const UnifiedContentCard = ({
             {contentType === 'word' && (item.language_from || item.language_to) && (
               <div style={{ color: textColor }}>
                 {[item.language_from, item.language_to].filter(Boolean).join(' → ')}
+              </div>
+            )}
+            {contentType === 'text_snippet' && (item.category || item.language) && (
+              <div style={{ color: textColor }}>
+                {[item.category, item.language].filter(Boolean).join(' · ')}
               </div>
             )}
             {notes && (

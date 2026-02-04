@@ -67,6 +67,7 @@ export const SnippetProvider = ({ children }) => {
   const [contentSortBy, setContentSortBy] = useState('dateAdded');
   const [wordsSelectedLanguage, setWordsSelectedLanguage] = useState('all');
   const [wordsShowFavoritesOnly, setWordsShowFavoritesOnly] = useState(false);
+  const [textSnippetsShowFavoritesOnly, setTextSnippetsShowFavoritesOnly] = useState(false);
 
   const CONTENT_FAVORITES_KEY = 'contentFavorites';
   const [contentFavorites, setContentFavorites] = useState(() => {
@@ -423,14 +424,23 @@ export const SnippetProvider = ({ children }) => {
     return list;
   }, [words, contentSearchQuery, contentSelectedTags, contentSortBy, wordsSelectedLanguage, wordsShowFavoritesOnly, contentFavorites]);
 
-  const filteredTextSnippets = useMemo(() => filterContentItems(textSnippets, {
-    searchQuery: contentSearchQuery,
-    searchFields: ['text', 'notes', 'category'],
-    selectedTags: contentSelectedTags,
-    sortBy: contentSortBy,
-    dateKey: 'date_added',
-    textKey: 'text',
-  }), [textSnippets, contentSearchQuery, contentSelectedTags, contentSortBy]);
+  const filteredTextSnippets = useMemo(() => {
+    let list = filterContentItems(textSnippets, {
+      searchQuery: contentSearchQuery,
+      searchFields: ['text', 'notes', 'category'],
+      selectedTags: contentSelectedTags,
+      sortBy: contentSortBy,
+      dateKey: 'date_added',
+      textKey: 'text',
+    });
+    if (textSnippetsShowFavoritesOnly) {
+      const favIds = contentFavorites.textSnippets || [];
+      list = list.filter((t) => favIds.includes(t.id));
+    }
+    return list;
+  }, [textSnippets, contentSearchQuery, contentSelectedTags, contentSortBy, textSnippetsShowFavoritesOnly, contentFavorites]);
+
+  const textSnippetsFavoritesCount = (contentFavorites.textSnippets || []).length;
 
   const filteredPrompts = useMemo(() => filterContentItems(prompts, {
     searchQuery: contentSearchQuery,
@@ -633,6 +643,9 @@ export const SnippetProvider = ({ children }) => {
     textSnippetsError,
     textSnippetsTags,
     textSnippetsCategories,
+    textSnippetsShowFavoritesOnly,
+    setTextSnippetsShowFavoritesOnly,
+    textSnippetsFavoritesCount,
     addTextSnippet,
     updateTextSnippet,
     deleteTextSnippet,

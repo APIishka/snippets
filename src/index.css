@@ -29,6 +29,46 @@ body {
   background: #262626;
 }
 
+/* Low-contrast scrollbars for modals and dropdowns */
+.scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.scrollbar-subtle::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-subtle::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-subtle::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+.scrollbar-subtle::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Light-theme override when inside light context */
+.light .scrollbar-subtle,
+.scrollbar-subtle[data-theme="light"] {
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
+.light .scrollbar-subtle::-webkit-scrollbar-thumb,
+.scrollbar-subtle[data-theme="light"]::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.light .scrollbar-subtle::-webkit-scrollbar-thumb:hover,
+.scrollbar-subtle[data-theme="light"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+
 /* Python-specific syntax highlighting enhancements */
 .language-python .token.keyword {
   color: #FF8F40 !important;
