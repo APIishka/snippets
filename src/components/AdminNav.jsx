@@ -35,16 +35,16 @@ const AdminNav = () => {
         Messages
       </NavLink>
       <NavLink
-        to="/prompts"
-        className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
-      >
-        Prompts
-      </NavLink>
-      <NavLink
         to="/instructions"
         className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
       >
         Instructions
+      </NavLink>
+      <NavLink
+        to="/prompts"
+        className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
+      >
+        Prompts
       </NavLink>
     </nav>
   );

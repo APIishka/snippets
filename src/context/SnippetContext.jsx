@@ -68,6 +68,8 @@ export const SnippetProvider = ({ children }) => {
   const [wordsSelectedLanguage, setWordsSelectedLanguage] = useState('all');
   const [wordsShowFavoritesOnly, setWordsShowFavoritesOnly] = useState(false);
   const [textSnippetsShowFavoritesOnly, setTextSnippetsShowFavoritesOnly] = useState(false);
+  const [instructionsShowFavoritesOnly, setInstructionsShowFavoritesOnly] = useState(false);
+  const [promptsShowFavoritesOnly, setPromptsShowFavoritesOnly] = useState(false);
 
   const CONTENT_FAVORITES_KEY = 'contentFavorites';
   const [contentFavorites, setContentFavorites] = useState(() => {
@@ -442,23 +444,41 @@ export const SnippetProvider = ({ children }) => {
 
   const textSnippetsFavoritesCount = (contentFavorites.textSnippets || []).length;
 
-  const filteredPrompts = useMemo(() => filterContentItems(prompts, {
-    searchQuery: contentSearchQuery,
-    searchFields: ['text', 'notes'],
-    selectedTags: contentSelectedTags,
-    sortBy: contentSortBy,
-    dateKey: 'date_added',
-    textKey: 'text',
-  }), [prompts, contentSearchQuery, contentSelectedTags, contentSortBy]);
+  const filteredPrompts = useMemo(() => {
+    let list = filterContentItems(prompts, {
+      searchQuery: contentSearchQuery,
+      searchFields: ['text', 'notes'],
+      selectedTags: contentSelectedTags,
+      sortBy: contentSortBy,
+      dateKey: 'date_added',
+      textKey: 'text',
+    });
+    if (promptsShowFavoritesOnly) {
+      const favIds = contentFavorites.prompts || [];
+      list = list.filter((p) => favIds.includes(p.id));
+    }
+    return list;
+  }, [prompts, contentSearchQuery, contentSelectedTags, contentSortBy, promptsShowFavoritesOnly, contentFavorites]);
 
-  const filteredInstructions = useMemo(() => filterContentItems(instructions, {
-    searchQuery: contentSearchQuery,
-    searchFields: ['text', 'notes'],
-    selectedTags: contentSelectedTags,
-    sortBy: contentSortBy,
-    dateKey: 'date_added',
-    textKey: 'text',
-  }), [instructions, contentSearchQuery, contentSelectedTags, contentSortBy]);
+  const promptsFavoritesCount = (contentFavorites.prompts || []).length;
+
+  const filteredInstructions = useMemo(() => {
+    let list = filterContentItems(instructions, {
+      searchQuery: contentSearchQuery,
+      searchFields: ['text', 'notes'],
+      selectedTags: contentSelectedTags,
+      sortBy: contentSortBy,
+      dateKey: 'date_added',
+      textKey: 'text',
+    });
+    if (instructionsShowFavoritesOnly) {
+      const favIds = contentFavorites.instructions || [];
+      list = list.filter((i) => favIds.includes(i.id));
+    }
+    return list;
+  }, [instructions, contentSearchQuery, contentSelectedTags, contentSortBy, instructionsShowFavoritesOnly, contentFavorites]);
+
+  const instructionsFavoritesCount = (contentFavorites.instructions || []).length;
 
   const addWord = useCallback(async (payload) => {
     const { error } = await supabase.from('words').insert({
@@ -655,6 +675,9 @@ export const SnippetProvider = ({ children }) => {
     promptsLoading,
     promptsError,
     promptsTags,
+    promptsShowFavoritesOnly,
+    setPromptsShowFavoritesOnly,
+    promptsFavoritesCount,
     addPrompt,
     updatePrompt,
     deletePrompt,
@@ -664,6 +687,9 @@ export const SnippetProvider = ({ children }) => {
     instructionsLoading,
     instructionsError,
     instructionsTags,
+    instructionsShowFavoritesOnly,
+    setInstructionsShowFavoritesOnly,
+    instructionsFavoritesCount,
     addInstruction,
     updateInstruction,
     deleteInstruction,

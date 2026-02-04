@@ -4,6 +4,11 @@ import { useSnippets } from '../context/snippetContext';
 
 const WORD_LANGUAGES = ['en', 'ru', 'es', 'fr', 'de', 'it', 'pt', 'pl', 'uk', 'cz', 'ja', 'zh', 'ar'];
 
+/** English, Czech, Russian first; then rest. Used for messages, instructions, prompts. */
+const LANGUAGE_OPTIONS_TOP_FIRST = ['en', 'cz', 'ru', ...WORD_LANGUAGES.filter((l) => !['en', 'cz', 'ru'].includes(l))];
+
+const LANGUAGE_LABELS = { en: 'English', cz: 'Czech', ru: 'Russian', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', pt: 'Portuguese', pl: 'Polish', uk: 'Ukrainian', ja: 'Japanese', zh: 'Chinese', ar: 'Arabic' };
+
 /**
  * Shared modal for add/edit of words, text_snippets, prompts, instructions.
  * Renders fields by type; calls context add/update/delete.
@@ -19,20 +24,20 @@ const FIELD_CONFIG = {
   ],
   text_snippet: [
     { key: 'text', label: 'Text', type: 'textarea', required: true },
-    { key: 'language', label: 'Language', type: 'select', options: WORD_LANGUAGES },
+    { key: 'language', label: 'Language', type: 'select', options: LANGUAGE_OPTIONS_TOP_FIRST },
     { key: 'category', label: 'Category', type: 'select', optionsKey: 'textSnippetsCategories' },
     { key: 'notes', label: 'Notes', type: 'textarea' },
     { key: 'tags', label: 'Tags (comma-separated)', type: 'tags' },
   ],
   prompt: [
     { key: 'text', label: 'Prompt', type: 'textarea', required: true },
-    { key: 'language', label: 'Language', type: 'text' },
+    { key: 'language', label: 'Language', type: 'select', options: LANGUAGE_OPTIONS_TOP_FIRST },
     { key: 'notes', label: 'Notes', type: 'textarea' },
     { key: 'tags', label: 'Tags (comma-separated)', type: 'tags' },
   ],
   instruction: [
     { key: 'text', label: 'Instruction', type: 'textarea', required: true },
-    { key: 'language', label: 'Language', type: 'text' },
+    { key: 'language', label: 'Language', type: 'select', options: LANGUAGE_OPTIONS_TOP_FIRST },
     { key: 'notes', label: 'Notes', type: 'textarea' },
     { key: 'tags', label: 'Tags (comma-separated)', type: 'tags' },
   ],
@@ -214,7 +219,7 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
                   >
                     <option value="">{key === 'category' ? '—' : 'Select…'}</option>
                     {options.filter(Boolean).map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option key={opt} value={opt}>{LANGUAGE_LABELS[opt] || opt}</option>
                     ))}
                   </select>
                 ) : fieldType === 'textarea' ? (

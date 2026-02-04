@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Filter } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import { getThemeColors } from '../utils/themeColors';
 import ContentListLayout from '../components/ContentListLayout';
@@ -16,6 +16,9 @@ const PromptsPage = () => {
     promptsLoading,
     promptsError,
     promptsTags,
+    promptsShowFavoritesOnly,
+    setPromptsShowFavoritesOnly,
+    promptsFavoritesCount,
     contentSearchQuery,
     setContentSearchQuery,
     contentSelectedTags,
@@ -31,6 +34,7 @@ const PromptsPage = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   if (!isAuthLoading && !isAuthenticated) {
     return (
@@ -78,6 +82,15 @@ const PromptsPage = () => {
         onToggleTag={toggleContentTag}
         sortBy={contentSortBy}
         onSortChange={setContentSortBy}
+        hideSort={true}
+        showFavoritesOnly={promptsShowFavoritesOnly}
+        onToggleFavorites={() => setPromptsShowFavoritesOnly(!promptsShowFavoritesOnly)}
+        favoritesCount={promptsFavoritesCount}
+        onClearFilters={() => setPromptsShowFavoritesOnly(false)}
+        hideCountInFilterRow={true}
+        filtersInModalOnMobile={true}
+        filterModalOpen={filterModalOpen}
+        onFilterModalOpenChange={setFilterModalOpen}
         loading={promptsLoading}
         error={promptsError}
         onRetry={() => fetchContent()}
@@ -86,11 +99,25 @@ const PromptsPage = () => {
         theme="dark"
         emptyMessage="No prompts"
       >
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => setFilterModalOpen(true)}
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm border cursor-pointer hover:opacity-90 shrink-0"
+              style={{ background: theme.pageBackground, borderColor: theme.inputBorder, color: theme.textColor }}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </button>
+            <span className="text-xs tabular-nums shrink-0 md:px-4" style={{ color: theme.buttonText }}>
+              {filteredPrompts.length} of {prompts.length}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => { setEditingItem(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shrink-0"
             style={{ background: theme.focusBorder, color: '#fff' }}
           >
             <Plus className="w-4 h-4" />
@@ -102,14 +129,15 @@ const PromptsPage = () => {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredPrompts.map((item) => (
-              <ContentCard
+              <UnifiedContentCard
                 key={item.id}
                 item={item}
-                primaryKey="text"
+                contentType="prompt"
+                title={item.text?.slice(0, 60) + (item.text?.length > 60 ? '…' : '') || 'Prompt'}
+                languageLabel={null}
+                bodyText={item.notes || ''}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
                 isAuthenticated={isAuthenticated}
-                theme="dark"
               />
             ))}
           </div>

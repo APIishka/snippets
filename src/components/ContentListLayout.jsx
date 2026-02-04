@@ -31,6 +31,7 @@ const ContentListLayout = ({
   filterModalOpen: filterModalOpenProp = null,
   onFilterModalOpenChange = null,
   hideCountInFilterRow = false,
+  onClearFilters = null,
   children,
   emptyMessage = 'No items',
   loading,
@@ -67,10 +68,36 @@ const ContentListLayout = ({
     return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, [tagsDropdownOpen]);
 
-  const hasAnyFilters = (categories?.length > 0 && onCategoryChange) || (showFavoritesOnly != null && onToggleFavorites) || tags.length > 0;
+  const hasAnyFilters = (categories?.length > 0 && onCategoryChange) || (showFavoritesOnly != null && onToggleFavorites) || tags.length > 0 || (onClearFilters != null && (showFavoritesOnly != null || tags.length > 0));
 
   const filterControls = (
     <>
+      {onClearFilters != null && !(categories?.length > 0 && onCategoryChange) && (
+        <button
+          type="button"
+          onClick={() => onClearFilters()}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${!showFavoritesOnly ? '' : 'border'}`}
+          style={
+            !showFavoritesOnly
+              ? { background: accent, color: '#fff' }
+              : { background: pageBg, borderColor: border, color: text }
+          }
+          onMouseEnter={(e) => {
+            if (showFavoritesOnly) {
+              e.currentTarget.style.color = theme.buttonHoverText;
+              e.currentTarget.style.borderColor = theme.buttonHoverBorder;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (showFavoritesOnly) {
+              e.currentTarget.style.color = text;
+              e.currentTarget.style.borderColor = border;
+            }
+          }}
+        >
+          All
+        </button>
+      )}
       {categories?.length > 0 && onCategoryChange && categoryAsDropdown && (
         <select
           value={selectedCategory ?? ''}

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Filter } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
 import { getThemeColors } from '../utils/themeColors';
 import ContentListLayout from '../components/ContentListLayout';
@@ -16,6 +16,9 @@ const InstructionsPage = () => {
     instructionsLoading,
     instructionsError,
     instructionsTags,
+    instructionsShowFavoritesOnly,
+    setInstructionsShowFavoritesOnly,
+    instructionsFavoritesCount,
     contentSearchQuery,
     setContentSearchQuery,
     contentSelectedTags,
@@ -31,6 +34,7 @@ const InstructionsPage = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
 
   if (!isAuthLoading && !isAuthenticated) {
     return (
@@ -78,6 +82,15 @@ const InstructionsPage = () => {
         onToggleTag={toggleContentTag}
         sortBy={contentSortBy}
         onSortChange={setContentSortBy}
+        hideSort={true}
+        showFavoritesOnly={instructionsShowFavoritesOnly}
+        onToggleFavorites={() => setInstructionsShowFavoritesOnly(!instructionsShowFavoritesOnly)}
+        favoritesCount={instructionsFavoritesCount}
+        onClearFilters={() => setInstructionsShowFavoritesOnly(false)}
+        hideCountInFilterRow={true}
+        filtersInModalOnMobile={true}
+        filterModalOpen={filterModalOpen}
+        onFilterModalOpenChange={setFilterModalOpen}
         loading={instructionsLoading}
         error={instructionsError}
         onRetry={() => fetchContent()}
@@ -85,11 +98,25 @@ const InstructionsPage = () => {
         filteredCount={filteredInstructions.length}
         emptyMessage="No instructions"
       >
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => setFilterModalOpen(true)}
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm border cursor-pointer hover:opacity-90 shrink-0"
+              style={{ background: theme.pageBackground, borderColor: theme.inputBorder, color: theme.textColor }}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </button>
+            <span className="text-xs tabular-nums shrink-0 md:px-4" style={{ color: theme.buttonText }}>
+              {filteredInstructions.length} of {instructions.length}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => { setEditingItem(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shrink-0"
             style={{ background: theme.focusBorder, color: '#fff' }}
           >
             <Plus className="w-4 h-4" />
@@ -101,14 +128,15 @@ const InstructionsPage = () => {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredInstructions.map((item) => (
-              <ContentCard
+              <UnifiedContentCard
                 key={item.id}
                 item={item}
-                primaryKey="text"
+                contentType="instruction"
+                title={item.text?.slice(0, 60) + (item.text?.length > 60 ? '…' : '') || 'Instruction'}
+                languageLabel={null}
+                bodyText={item.notes || ''}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
                 isAuthenticated={isAuthenticated}
-                theme="dark"
               />
             ))}
           </div>
