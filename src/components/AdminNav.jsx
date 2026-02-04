@@ -29,7 +29,7 @@ const AdminNav = () => {
         Words
       </NavLink>
       <NavLink
-        to="/text-snippets"
+        to="/messages"
         className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
       >
         Messages

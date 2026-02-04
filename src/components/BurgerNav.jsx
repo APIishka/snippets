@@ -7,7 +7,7 @@ import { getThemeColors } from '../utils/themeColors';
 const NAV_LINKS = [
   { to: '/snippets', label: 'Code' },
   { to: '/words', label: 'Words' },
-  { to: '/text-snippets', label: 'Messages' },
+  { to: '/messages', label: 'Messages' },
   { to: '/prompts', label: 'Prompts' },
   { to: '/instructions', label: 'Instructions' },
 ];

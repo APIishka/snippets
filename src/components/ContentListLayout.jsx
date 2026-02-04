@@ -90,7 +90,7 @@ const ContentListLayout = ({
           ))}
         </select>
       )}
-      {showFavoritesOnly != null && onToggleFavorites && (
+      {categories?.length > 0 && onCategoryChange && categoryAsDropdown && showFavoritesOnly != null && onToggleFavorites && (
         <button
           type="button"
           onClick={() => onToggleFavorites()}
@@ -143,6 +143,33 @@ const ContentListLayout = ({
           >
             All
           </button>
+          {showFavoritesOnly != null && onToggleFavorites && (
+            <button
+              type="button"
+              onClick={() => onToggleFavorites()}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer ${showFavoritesOnly ? '' : 'border'}`}
+              style={
+                showFavoritesOnly
+                  ? { background: '#ef4444', color: '#fff' }
+                  : { background: pageBg, borderColor: border, color: text }
+              }
+              onMouseEnter={(e) => {
+                if (!showFavoritesOnly) {
+                  e.currentTarget.style.color = '#ef4444';
+                  e.currentTarget.style.borderColor = '#ef4444';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!showFavoritesOnly) {
+                  e.currentTarget.style.color = text;
+                  e.currentTarget.style.borderColor = border;
+                }
+              }}
+            >
+              <Heart className="w-4 h-4" fill={showFavoritesOnly ? '#fff' : 'none'} />
+              Favorites {favoritesCount > 0 && `(${favoritesCount})`}
+            </button>
+          )}
           {categories.map((cat) => {
             const selected = selectedCategory === cat;
             return (
@@ -175,6 +202,35 @@ const ContentListLayout = ({
           })}
         </>
       )}
+      {categories?.length == null || !onCategoryChange ? (
+        showFavoritesOnly != null && onToggleFavorites && (
+          <button
+            type="button"
+            onClick={() => onToggleFavorites()}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 cursor-pointer ${showFavoritesOnly ? '' : 'border'}`}
+            style={
+              showFavoritesOnly
+                ? { background: '#ef4444', color: '#fff' }
+                : { background: pageBg, borderColor: border, color: text }
+            }
+            onMouseEnter={(e) => {
+              if (!showFavoritesOnly) {
+                e.currentTarget.style.color = '#ef4444';
+                e.currentTarget.style.borderColor = '#ef4444';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showFavoritesOnly) {
+                e.currentTarget.style.color = text;
+                e.currentTarget.style.borderColor = border;
+              }
+            }}
+          >
+            <Heart className="w-4 h-4" fill={showFavoritesOnly ? '#fff' : 'none'} />
+            Favorites {favoritesCount > 0 && `(${favoritesCount})`}
+          </button>
+        )
+      ) : null}
       {tags.length > 0 && onToggleTag && (
         <div className="relative" ref={tagsDropdownRef}>
           <button
