@@ -191,16 +191,23 @@ const UnifiedContentCard = ({
   }
 
   const isMessageCard = contentType === 'text_snippet' || contentType === 'talk';
+  const copyOnCardClick = contentType === 'text_snippet' || contentType === 'talk' || contentType === 'prompt';
+  const handleCardClick = copyOnCardClick ? () => handleCopy() : undefined;
 
   return (
     <div className="relative md:group">
       <div
         ref={cardRef}
-        className="border rounded-lg p-3 flex flex-col min-h-0"
+        className={`border rounded-lg p-3 flex flex-col min-h-0 ${copyOnCardClick ? 'cursor-pointer' : ''}`}
         style={{
           background: bgColor,
           borderColor: cardBorderColor,
         }}
+        onClick={handleCardClick}
+        onKeyDown={copyOnCardClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopy(); } } : undefined}
+        role={copyOnCardClick ? 'button' : undefined}
+        tabIndex={copyOnCardClick ? 0 : undefined}
+        title={copyOnCardClick ? 'Click to copy' : undefined}
       >
         <div className={`flex items-start justify-between gap-2 ${isMessageCard ? '' : 'mb-2'}`}>
           {!isMessageCard && (
@@ -215,23 +222,23 @@ const UnifiedContentCard = ({
               {highlight(bodyText)}
             </div>
           )}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             {languageLabel && !isMessageCard && (
               <span className="text-[10px] px-1.5 py-0.5 rounded border font-medium" style={{ color: languageBadgeColor, borderColor: languageBadgeBorder }}>
                 {languageLabel}
               </span>
             )}
-            <button type="button" onClick={() => toggleContentFavorite(contentType, item.id)} className="p-1 cursor-pointer" style={{ color: isFav ? '#ef4444' : textColor }} aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}>
+            <button type="button" onClick={(e) => { e.stopPropagation(); toggleContentFavorite(contentType, item.id); }} className="p-1 cursor-pointer" style={{ color: isFav ? '#ef4444' : textColor }} aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}>
               <Heart className="w-3.5 h-3.5" fill={isFav ? '#ef4444' : 'none'} />
             </button>
-            <button type="button" onClick={() => setShowDetails(!showDetails)} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Toggle details">
+            <button type="button" onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Toggle details">
               <Info className="w-3.5 h-3.5" />
             </button>
-            <button type="button" onClick={handleCopy} className="p-1 cursor-pointer" style={{ color: copied ? '#22c55e' : textColor }} aria-label="Copy" title="Copy">
+            <button type="button" onClick={(e) => { e.stopPropagation(); handleCopy(); }} className="p-1 cursor-pointer" style={{ color: copied ? '#22c55e' : textColor }} aria-label="Copy" title="Copy">
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
             {isAuthenticated && onEdit && (
-              <button type="button" onClick={() => onEdit(item)} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Edit">
+              <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item); }} className="p-1 cursor-pointer" style={{ color: textColor }} aria-label="Edit">
                 <Edit className="w-3.5 h-3.5" />
               </button>
             )}
