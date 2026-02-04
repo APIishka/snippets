@@ -334,8 +334,8 @@ const SnippetsPage = () => {
         <div className="px-3 sm:px-4 md:px-6 lg:px-8 pt-4 sm:pt-5 md:pt-6 pb-20 md:pb-24">
         {/* Search & Filter */}
         <div className="w-full mb-4 sm:mb-6 md:mb-8 space-y-3 md:space-y-4">
-          {/* Row 1: Search only (filters on next row on big screens) */}
-          <div className="w-full">
+          {/* Row 1: Search + Theme button on the right (desktop); same height via stretch */}
+          <div className="flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-3">
             <div className="relative flex-1 min-w-0 w-full">
               <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5" style={{ color: inputPlaceholder }} />
               <input
@@ -343,7 +343,7 @@ const SnippetsPage = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search in code, titles, notes, tags..."
-                className="search-input w-full pl-9 sm:pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 sm:py-3 md:py-3 border rounded-lg text-sm md:text-base font-medium focus:outline-none transition-colors min-h-[44px] sm:min-h-0"
+                className="search-input w-full h-full pl-9 sm:pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 sm:py-3 md:py-3 border rounded-lg text-sm md:text-base font-medium focus:outline-none transition-colors min-h-[44px] sm:min-h-0"
                 style={{
                   background: inputBackground,
                   borderColor: inputBorder,
@@ -353,80 +353,104 @@ const SnippetsPage = () => {
                 onBlur={(e) => e.target.style.borderColor = inputBorder}
               />
             </div>
+            {/* Theme button: stretches to same height as search on desktop */}
+            <button
+              onClick={() => setColorScheme(['ayu', 'vscode', 'light'][(['ayu', 'vscode', 'light'].indexOf(colorScheme) + 1) % 3])}
+              className="hidden md:flex px-3 md:px-4 border rounded-lg cursor-pointer flex-shrink-0 items-center justify-center min-h-0"
+              style={{ background: pageBackground, borderColor: inputBorder, color: buttonText }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = buttonHoverText; e.currentTarget.style.borderColor = buttonHoverBorder; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = buttonText; e.currentTarget.style.borderColor = inputBorder; }}
+              title="Switch color scheme"
+            >
+              <Palette className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
           </div>
 
-          {/* Row 2: Language & Favorites filter - dropdown on mobile, buttons on desktop */}
+          {/* Row 2: Language & Favorites filter - dropdown on mobile (with theme on right), buttons on desktop */}
           {languages.length > 0 && (
             <>
-              {/* Mobile: Dropdown */}
-              <div className="md:hidden relative" ref={filterDropdownRef}>
-                <button
-                  onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                  className="w-full px-3 py-2.5 min-h-[44px] border rounded-lg text-sm font-medium flex items-center justify-between cursor-pointer"
-                  style={{
-                    background: inputBackground,
-                    borderColor: inputBorder,
-                    color: inputText,
-                  }}
-                >
-                  <span className="flex items-center gap-2">
-                    {showFavoritesOnly ? (
-                      <>
-                        <Heart className="w-4 h-4" fill="#ef4444" />
-                        <span>Favorites {favoritesCount > 0 && `(${favoritesCount})`}</span>
-                      </>
-                    ) : selectedLanguage === 'all' ? (
-                      'All Languages'
-                    ) : (
-                      <>
-                        {renderLanguageIcon(selectedLanguage, { className: 'w-4 h-4' })}
-                        <span>{selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span>
-                      </>
-                    )}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isFilterDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto" style={{ background: modalBg, borderColor: inputBorder }}>
-                    <button
-                      onClick={() => {
-                        setSelectedLanguage('all');
-                        setShowFavoritesOnly(false);
-                        setIsFilterDropdownOpen(false);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
-                      style={{ color: selectedLanguage === 'all' && !showFavoritesOnly ? focusBorder : inputText }}
-                    >
-                      All Languages
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowFavoritesOnly(!showFavoritesOnly);
-                        setIsFilterDropdownOpen(false);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
-                      style={{ color: showFavoritesOnly ? '#ef4444' : inputText }}
-                    >
-                      <Heart className="w-4 h-4" fill={showFavoritesOnly ? '#ef4444' : 'none'} />
-                      Favorites {favoritesCount > 0 && `(${favoritesCount})`}
-                    </button>
-                    {languages.map(lang => (
+              {/* Mobile: Language dropdown + Theme button on the right */}
+              <div className="md:hidden flex items-center gap-2">
+                <div className="flex-1 min-w-0 relative" ref={filterDropdownRef}>
+                  <button
+                    onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                    className="w-full px-3 py-2.5 min-h-[44px] border rounded-lg text-sm font-medium flex items-center justify-between cursor-pointer"
+                    style={{
+                      background: inputBackground,
+                      borderColor: inputBorder,
+                      color: inputText,
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      {showFavoritesOnly ? (
+                        <>
+                          <Heart className="w-4 h-4" fill="#ef4444" />
+                          <span>Favorites {favoritesCount > 0 && `(${favoritesCount})`}</span>
+                        </>
+                      ) : selectedLanguage === 'all' ? (
+                        'All Languages'
+                      ) : (
+                        <>
+                          {renderLanguageIcon(selectedLanguage, { className: 'w-4 h-4' })}
+                          <span>{selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span>
+                        </>
+                      )}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isFilterDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto" style={{ background: modalBg, borderColor: inputBorder }}>
                       <button
-                        key={lang}
                         onClick={() => {
-                          setSelectedLanguage(lang);
+                          setSelectedLanguage('all');
                           setShowFavoritesOnly(false);
                           setIsFilterDropdownOpen(false);
                         }}
                         className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
-                        style={{ color: selectedLanguage === lang && !showFavoritesOnly ? focusBorder : inputText }}
+                        style={{ color: selectedLanguage === 'all' && !showFavoritesOnly ? focusBorder : inputText }}
                       >
-                        {renderLanguageIcon(lang, { className: 'w-4 h-4' })}
-                        {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                        All Languages
                       </button>
-                    ))}
-                  </div>
-                )}
+                      <button
+                        onClick={() => {
+                          setShowFavoritesOnly(!showFavoritesOnly);
+                          setIsFilterDropdownOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
+                        style={{ color: showFavoritesOnly ? '#ef4444' : inputText }}
+                      >
+                        <Heart className="w-4 h-4" fill={showFavoritesOnly ? '#ef4444' : 'none'} />
+                        Favorites {favoritesCount > 0 && `(${favoritesCount})`}
+                      </button>
+                      {languages.map(lang => (
+                        <button
+                          key={lang}
+                          onClick={() => {
+                            setSelectedLanguage(lang);
+                            setShowFavoritesOnly(false);
+                            setIsFilterDropdownOpen(false);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
+                          style={{ color: selectedLanguage === lang && !showFavoritesOnly ? focusBorder : inputText }}
+                        >
+                          {renderLanguageIcon(lang, { className: 'w-4 h-4' })}
+                          {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Theme button on mobile: right of language dropdown, for all users */}
+                <button
+                  onClick={() => setColorScheme(['ayu', 'vscode', 'light'][(['ayu', 'vscode', 'light'].indexOf(colorScheme) + 1) % 3])}
+                  className="p-2 min-h-[44px] min-w-[44px] border rounded-lg cursor-pointer flex-shrink-0 flex items-center justify-center"
+                  style={{ background: pageBackground, borderColor: inputBorder, color: buttonText }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = buttonHoverText; e.currentTarget.style.borderColor = buttonHoverBorder; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = buttonText; e.currentTarget.style.borderColor = inputBorder; }}
+                  title="Switch color scheme"
+                >
+                  <Palette className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Desktop: Buttons */}
@@ -535,32 +559,35 @@ const SnippetsPage = () => {
               </div>
             </>
           )}
+          {/* Mobile: theme button only when there are no languages (e.g. no snippets yet) */}
+          {languages.length === 0 && (
+            <div className="md:hidden flex justify-end">
+              <button
+                onClick={() => setColorScheme(['ayu', 'vscode', 'light'][(['ayu', 'vscode', 'light'].indexOf(colorScheme) + 1) % 3])}
+                className="p-2 min-h-[44px] min-w-[44px] border rounded-lg cursor-pointer flex-shrink-0 flex items-center justify-center"
+                style={{ background: pageBackground, borderColor: inputBorder, color: buttonText }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = buttonHoverText; e.currentTarget.style.borderColor = buttonHoverBorder; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = buttonText; e.currentTarget.style.borderColor = inputBorder; }}
+                title="Switch color scheme"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
-          {/* Row 3 (desktop): Add New Snippet + Theme on left, Lock on right */}
+          {/* Row 3 (desktop, when logged in): Add New Snippet on left, Lock on right */}
           {!isAuthLoading && isAuthenticated && (
             <div className="hidden md:flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleOpenModal}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                  style={{ background: focusBorder, color: '#fff' }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New Snippet
-                </button>
-                <button
-                  onClick={() => setColorScheme(['ayu', 'vscode', 'light'][(['ayu', 'vscode', 'light'].indexOf(colorScheme) + 1) % 3])}
-                  className="p-2 border rounded-lg cursor-pointer flex-shrink-0"
-                  style={{ background: pageBackground, borderColor: inputBorder, color: buttonText }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = buttonHoverText; e.currentTarget.style.borderColor = buttonHoverBorder; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = buttonText; e.currentTarget.style.borderColor = inputBorder; }}
-                  title="Switch color scheme"
-                >
-                  <Palette className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={handleOpenModal}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                style={{ background: focusBorder, color: '#fff' }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                <Plus className="w-4 h-4" />
+                Add New Snippet
+              </button>
               <button
                 onClick={() => logout()}
                 className="px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors border shrink-0"
@@ -612,7 +639,7 @@ const SnippetsPage = () => {
               </div>
             ) : (
               <>
-                {/* Mobile: Grouped buttons with theme */}
+                {/* Mobile: Add + Lock (no theme here; theme is next to language dropdown) */}
                 <div className="md:hidden flex items-center gap-2">
                   <button
                     onClick={handleOpenModal}
@@ -626,31 +653,6 @@ const SnippetsPage = () => {
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      const schemes = ['ayu', 'vscode', 'light'];
-                      const currentIndex = schemes.indexOf(colorScheme);
-                      const nextIndex = (currentIndex + 1) % schemes.length;
-                      setColorScheme(schemes[nextIndex]);
-                    }}
-                    className="p-2 min-h-[44px] min-w-[44px] border rounded-lg transition-colors cursor-pointer flex-shrink-0 flex items-center justify-center"
-                    style={{
-                      background: pageBackground,
-                      borderColor: inputBorder,
-                      color: buttonText,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = buttonHoverText;
-                      e.currentTarget.style.borderColor = buttonHoverBorder;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = buttonText;
-                      e.currentTarget.style.borderColor = inputBorder;
-                    }}
-                    title="Switch color scheme"
-                  >
-                    <Palette className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => logout()}
