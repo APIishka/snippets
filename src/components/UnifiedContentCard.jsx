@@ -172,11 +172,11 @@ const UnifiedContentCard = ({
                 {[item.language_from, item.language_to].filter(Boolean).join(' → ')}
               </div>
             )}
-            {contentType === 'text_snippet' && (item.category || item.language) && (
+            {(contentType === 'text_snippet' && (item.category || item.language)) || (contentType === 'talk' && item.language) ? (
               <div className="mb-2" style={{ color: textColor }}>
-                {[item.category, item.language].filter(Boolean).join(' · ')}
+                {contentType === 'talk' ? item.language : [item.category, item.language].filter(Boolean).join(' · ')}
               </div>
-            )}
+            ) : null}
             {notes && <div className="mb-2" style={{ color: bodyColor }}>{highlight(notes)}</div>}
             <div className="flex flex-wrap gap-1.5">
               {tags.map((tag, index) => (
@@ -190,7 +190,7 @@ const UnifiedContentCard = ({
     );
   }
 
-  const isMessageCard = contentType === 'text_snippet';
+  const isMessageCard = contentType === 'text_snippet' || contentType === 'talk';
 
   return (
     <div className="relative md:group">
@@ -262,11 +262,11 @@ const UnifiedContentCard = ({
                 {[item.language_from, item.language_to].filter(Boolean).join(' → ')}
               </div>
             )}
-            {contentType === 'text_snippet' && (item.category || item.language) && (
+            {(contentType === 'text_snippet' && (item.category || item.language)) || (contentType === 'talk' && item.language) ? (
               <div style={{ color: textColor }}>
-                {[item.category, item.language].filter(Boolean).join(' · ')}
+                {contentType === 'talk' ? item.language : [item.category, item.language].filter(Boolean).join(' · ')}
               </div>
-            )}
+            ) : null}
             {notes && (
               <div className="text-sm leading-relaxed" style={{ color: colorScheme === 'light' ? '#24292f' : '#ffffff' }}>
                 {highlight(notes)}

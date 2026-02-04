@@ -7,6 +7,7 @@ import WordsPage from './pages/WordsPage';
 import TextSnippetsPage from './pages/TextSnippetsPage';
 import PromptsPage from './pages/PromptsPage';
 import InstructionsPage from './pages/InstructionsPage';
+import TalkPage from './pages/TalkPage';
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="/snippets" element={<SnippetsPage />} />
         <Route path="/words" element={<WordsPage />} />
         <Route path="/messages" element={<TextSnippetsPage />} />
+        <Route path="/talk" element={<TalkPage />} />
         <Route path="/prompts" element={<PromptsPage />} />
         <Route path="/instructions" element={<InstructionsPage />} />
       </Routes>

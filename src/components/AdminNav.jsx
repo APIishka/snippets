@@ -35,6 +35,12 @@ const AdminNav = () => {
         Messages
       </NavLink>
       <NavLink
+        to="/talk"
+        className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
+      >
+        Talk
+      </NavLink>
+      <NavLink
         to="/instructions"
         className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
       >

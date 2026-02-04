@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter } from 'lucide-react';
 import { useSnippets } from '../context/snippetContext';
@@ -7,51 +7,44 @@ import ContentListLayout from '../components/ContentListLayout';
 import MasonryTextSnippets from '../components/MasonryTextSnippets';
 import ContentModal from '../components/ContentModal';
 
-const TextSnippetsPage = () => {
+const TalkPage = () => {
   const navigate = useNavigate();
   const {
-    filteredTextSnippets,
-    textSnippetsLoading,
-    textSnippetsError,
-    textSnippetsTags,
-    textSnippetsCategories,
-    textSnippetsLanguages,
-    textSnippetsSelectedLanguage,
-    setTextSnippetsSelectedLanguage,
-    textSnippetsShowFavoritesOnly,
-    setTextSnippetsShowFavoritesOnly,
-    textSnippetsFavoritesCount,
+    filteredTalk,
+    talkLoading,
+    talkError,
+    talkTags,
+    talkLanguages,
+    talkSelectedLanguage,
+    setTalkSelectedLanguage,
+    talkShowFavoritesOnly,
+    setTalkShowFavoritesOnly,
+    talkFavoritesCount,
     contentSearchQuery,
     setContentSearchQuery,
     contentSelectedTags,
     toggleContentTag,
     contentSortBy,
     setContentSortBy,
-    textSnippets,
+    talk,
     isAuthenticated,
     isAuthLoading,
     fetchContent,
-    deleteTextSnippet,
+    deleteTalk,
     colorScheme,
   } = useSnippets();
 
   const theme = getThemeColors(colorScheme);
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
-
-  const itemsToShow = useMemo(() => {
-    if (!selectedCategory) return filteredTextSnippets;
-    return filteredTextSnippets.filter((t) => t.category === selectedCategory);
-  }, [filteredTextSnippets, selectedCategory]);
 
   if (!isAuthLoading && !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#0f1419', color: '#e5e7eb' }}>
         <div className="text-center space-y-4">
-          <p className="text-sm">Log in to view text snippets.</p>
+          <p className="text-sm">Log in to view talk.</p>
           <button
             type="button"
             onClick={() => navigate('/snippets')}
@@ -75,7 +68,7 @@ const TextSnippetsPage = () => {
   };
   const handleDelete = async (id) => {
     try {
-      await deleteTextSnippet(id);
+      await deleteTalk(id);
       handleCloseModal();
     } catch (err) {
       alert(err?.message || 'Failed to delete');
@@ -85,41 +78,36 @@ const TextSnippetsPage = () => {
   return (
     <div className="min-h-screen" style={{ background: theme.pageBackground, color: theme.textColor }}>
       <ContentListLayout
-        searchPlaceholder="Search text, notes, category…"
+        searchPlaceholder="Search text, notes…"
         searchValue={contentSearchQuery}
         onSearchChange={setContentSearchQuery}
-        tags={textSnippetsTags}
+        tags={talkTags}
         selectedTags={contentSelectedTags}
         onToggleTag={toggleContentTag}
         sortBy={contentSortBy}
         onSortChange={setContentSortBy}
-        categories={textSnippetsCategories}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        categoryAsDropdown={true}
-        showFavoritesOnly={textSnippetsShowFavoritesOnly}
-        onToggleFavorites={() => setTextSnippetsShowFavoritesOnly(!textSnippetsShowFavoritesOnly)}
-        favoritesCount={textSnippetsFavoritesCount}
+        showFavoritesOnly={talkShowFavoritesOnly}
+        onToggleFavorites={() => setTalkShowFavoritesOnly(!talkShowFavoritesOnly)}
+        favoritesCount={talkFavoritesCount}
         onClearFilters={() => {
-          setSelectedCategory(null);
-          setTextSnippetsShowFavoritesOnly(false);
-          setTextSnippetsSelectedLanguage('all');
+          setTalkShowFavoritesOnly(false);
+          setTalkSelectedLanguage('all');
         }}
-        filterLanguages={textSnippetsLanguages}
-        filterSelectedLanguage={textSnippetsSelectedLanguage}
-        onFilterLanguageChange={setTextSnippetsSelectedLanguage}
+        filterLanguages={talkLanguages}
+        filterSelectedLanguage={talkSelectedLanguage}
+        onFilterLanguageChange={setTalkSelectedLanguage}
         hideSort={true}
         filtersInModalOnMobile={true}
         filterModalOpen={filterModalOpen}
         onFilterModalOpenChange={setFilterModalOpen}
         hideCountInFilterRow={true}
-        loading={textSnippetsLoading}
-        error={textSnippetsError}
+        loading={talkLoading}
+        error={talkError}
         onRetry={() => fetchContent()}
-        totalCount={textSnippets.length}
-        filteredCount={itemsToShow.length}
+        totalCount={talk.length}
+        filteredCount={filteredTalk.length}
         theme="dark"
-        emptyMessage="No text snippets"
+        emptyMessage="No talk"
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -133,7 +121,7 @@ const TextSnippetsPage = () => {
               Filters
             </button>
             <span className="text-xs tabular-nums shrink-0 md:px-4" style={{ color: theme.buttonText }}>
-              {itemsToShow.length} of {textSnippets.length}
+              {filteredTalk.length} of {talk.length}
             </span>
           </div>
           <button
@@ -143,27 +131,28 @@ const TextSnippetsPage = () => {
             style={{ background: theme.focusBorder, color: '#fff' }}
           >
             <Plus className="w-4 h-4" />
-            Add message
+            Add talk
           </button>
         </div>
-        {itemsToShow.length === 0 ? (
-          <p className="text-sm py-8" style={{ color: '#8b949e' }}>No text snippets found.</p>
+        {filteredTalk.length === 0 ? (
+          <p className="text-sm py-8" style={{ color: '#8b949e' }}>No talk found.</p>
         ) : (
           <MasonryTextSnippets
-            items={itemsToShow}
+            items={filteredTalk}
             onEdit={handleEdit}
             isAuthenticated={isAuthenticated}
+            contentType="talk"
           />
         )}
       </ContentListLayout>
       <ContentModal
         isOpen={modalOpen}
         onClose={handleCloseModal}
-        type="text_snippet"
+        type="talk"
         item={editingItem}
       />
     </div>
   );
 };
 
-export default TextSnippetsPage;
+export default TalkPage;

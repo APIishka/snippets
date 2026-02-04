@@ -41,6 +41,12 @@ const FIELD_CONFIG = {
     { key: 'notes', label: 'Notes', type: 'textarea' },
     { key: 'tags', label: 'Tags (comma-separated)', type: 'tags' },
   ],
+  talk: [
+    { key: 'text', label: 'Text', type: 'textarea', required: true },
+    { key: 'language', label: 'Language', type: 'select', options: LANGUAGE_OPTIONS_TOP_FIRST },
+    { key: 'notes', label: 'Notes', type: 'textarea' },
+    { key: 'tags', label: 'Tags (comma-separated)', type: 'tags' },
+  ],
 };
 
 const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguageFrom, initialLanguageTo }) => {
@@ -59,18 +65,21 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
     text_snippet: ctx.addTextSnippet,
     prompt: ctx.addPrompt,
     instruction: ctx.addInstruction,
+    talk: ctx.addTalk,
   }[type];
   const update = {
     word: ctx.updateWord,
     text_snippet: ctx.updateTextSnippet,
     prompt: ctx.updatePrompt,
     instruction: ctx.updateInstruction,
+    talk: ctx.updateTalk,
   }[type];
   const remove = {
     word: ctx.deleteWord,
     text_snippet: ctx.deleteTextSnippet,
     prompt: ctx.deletePrompt,
     instruction: ctx.deleteInstruction,
+    talk: ctx.deleteTalk,
   }[type];
 
   const [form, setForm] = useState({});
@@ -175,7 +184,7 @@ const ContentModal = ({ isOpen, onClose, type, item: editingItem, initialLanguag
         <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: border }}>
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">
-              {isEdit ? 'Edit' : 'Add'} {type === 'text_snippet' ? 'message' : type.replace('_', ' ')}
+              {isEdit ? 'Edit' : 'Add'} {type === 'text_snippet' ? 'message' : type === 'talk' ? 'talk' : type.replace('_', ' ')}
             </h2>
             {isEdit && editingItem && (
               <button

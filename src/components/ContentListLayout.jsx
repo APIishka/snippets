@@ -32,6 +32,9 @@ const ContentListLayout = ({
   onFilterModalOpenChange = null,
   hideCountInFilterRow = false,
   onClearFilters = null,
+  filterLanguages = null,
+  filterSelectedLanguage = 'all',
+  onFilterLanguageChange = null,
   children,
   emptyMessage = 'No items',
   loading,
@@ -56,6 +59,8 @@ const ContentListLayout = ({
   const setFilterModalOpen = isFilterModalControlled ? onFilterModalOpenChange : setFilterModalOpenInternal;
   const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false);
   const tagsDropdownRef = useRef(null);
+  const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false);
+  const categoriesDropdownRef = useRef(null);
 
   useEffect(() => {
     if (!tagsDropdownOpen) return;
@@ -68,28 +73,39 @@ const ContentListLayout = ({
     return () => document.removeEventListener('mousedown', handleClickOutside, true);
   }, [tagsDropdownOpen]);
 
-  const hasAnyFilters = (categories?.length > 0 && onCategoryChange) || (showFavoritesOnly != null && onToggleFavorites) || tags.length > 0 || (onClearFilters != null && (showFavoritesOnly != null || tags.length > 0));
+  useEffect(() => {
+    if (!categoriesDropdownOpen) return;
+    const handleClickOutside = (e) => {
+      if (categoriesDropdownRef.current && !categoriesDropdownRef.current.contains(e.target)) {
+        setCategoriesDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside, true);
+    return () => document.removeEventListener('mousedown', handleClickOutside, true);
+  }, [categoriesDropdownOpen]);
+
+  const hasAnyFilters = (categories?.length > 0 && onCategoryChange) || (showFavoritesOnly != null && onToggleFavorites) || tags.length > 0 || (filterLanguages?.length > 0 && onFilterLanguageChange) || (onClearFilters != null && (showFavoritesOnly != null || tags.length > 0 || (filterLanguages?.length > 0 && filterSelectedLanguage !== 'all')));
 
   const filterControls = (
     <>
-      {onClearFilters != null && !(categories?.length > 0 && onCategoryChange) && (
+      {onClearFilters != null && (
         <button
           type="button"
           onClick={() => onClearFilters()}
-          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${!showFavoritesOnly ? '' : 'border'}`}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${!(showFavoritesOnly || (filterLanguages?.length > 0 && filterSelectedLanguage !== 'all') || (categories?.length > 0 && onCategoryChange && selectedCategory)) ? '' : 'border'}`}
           style={
-            !showFavoritesOnly
+            !(showFavoritesOnly || (filterLanguages?.length > 0 && filterSelectedLanguage !== 'all') || (categories?.length > 0 && onCategoryChange && selectedCategory))
               ? { background: accent, color: '#fff' }
               : { background: pageBg, borderColor: border, color: text }
           }
           onMouseEnter={(e) => {
-            if (showFavoritesOnly) {
+            if (showFavoritesOnly || (filterLanguages?.length > 0 && filterSelectedLanguage !== 'all') || (categories?.length > 0 && onCategoryChange && selectedCategory)) {
               e.currentTarget.style.color = theme.buttonHoverText;
               e.currentTarget.style.borderColor = theme.buttonHoverBorder;
             }
           }}
           onMouseLeave={(e) => {
-            if (showFavoritesOnly) {
+            if (showFavoritesOnly || (filterLanguages?.length > 0 && filterSelectedLanguage !== 'all') || (categories?.length > 0 && onCategoryChange && selectedCategory)) {
               e.currentTarget.style.color = text;
               e.currentTarget.style.borderColor = border;
             }
@@ -97,25 +113,6 @@ const ContentListLayout = ({
         >
           All
         </button>
-      )}
-      {categories?.length > 0 && onCategoryChange && categoryAsDropdown && (
-        <select
-          value={selectedCategory ?? ''}
-          onChange={(e) => onCategoryChange(e.target.value === '' ? null : e.target.value)}
-          className="px-4 py-2 rounded-lg font-semibold text-sm border cursor-pointer focus:outline-none transition-colors min-w-[8rem]"
-          style={{
-            background: inputBg,
-            borderColor: border,
-            color: theme.inputText,
-          }}
-          onFocus={(e) => { e.target.style.borderColor = accent; }}
-          onBlur={(e) => { e.target.style.borderColor = border; }}
-        >
-          <option value="">All</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
       )}
       {categories?.length > 0 && onCategoryChange && categoryAsDropdown && showFavoritesOnly != null && onToggleFavorites && (
         <button
@@ -258,6 +255,54 @@ const ContentListLayout = ({
           </button>
         )
       ) : null}
+      {categories?.length > 0 && onCategoryChange && categoryAsDropdown && (
+        <div className="relative" ref={categoriesDropdownRef}>
+          <button
+            type="button"
+            onClick={() => setCategoriesDropdownOpen((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm border cursor-pointer hover:opacity-90 min-w-[6rem] justify-between"
+            style={{
+              background: selectedCategory ? accent : pageBg,
+              borderColor: border,
+              color: selectedCategory ? '#fff' : text,
+            }}
+          >
+            <span className="truncate">Categories</span>
+            {selectedCategory && (
+              <span className="shrink-0 text-xs opacity-90">(1)</span>
+            )}
+            <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${categoriesDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {categoriesDropdownOpen && (
+            <div
+              className="scrollbar-subtle absolute top-full left-0 mt-1 border rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto min-w-[10rem]"
+              style={{ background: pageBg, borderColor: border }}
+            >
+              {categories.map((cat) => {
+                const selected = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      onCategoryChange(cat);
+                      setCategoriesDropdownOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity border-b last:border-b-0"
+                    style={{
+                      borderColor: border,
+                      background: selected ? accent : 'transparent',
+                      color: selected ? '#fff' : text,
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
       {tags.length > 0 && onToggleTag && (
         <div className="relative" ref={tagsDropdownRef}>
           <button
@@ -305,6 +350,28 @@ const ContentListLayout = ({
             </div>
           )}
         </div>
+      )}
+      {filterLanguages?.length > 0 && onFilterLanguageChange && (
+        <>
+          {filterLanguages.map((lang) => {
+            const selected = filterSelectedLanguage === lang;
+            return (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => onFilterLanguageChange(lang)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors cursor-pointer ${selected ? '' : 'border'}`}
+                style={
+                  selected
+                    ? { background: accent, color: '#fff' }
+                    : { background: pageBg, borderColor: border, color: text }
+                }
+              >
+                {lang}
+              </button>
+            );
+          })}
+        </>
       )}
     </>
   );

@@ -52,6 +52,7 @@ export const SnippetProvider = ({ children }) => {
   const [textSnippets, setTextSnippets] = useState([]);
   const [prompts, setPrompts] = useState([]);
   const [instructions, setInstructions] = useState([]);
+  const [talk, setTalk] = useState([]);
   const [contentRefreshTrigger, setContentRefreshTrigger] = useState(0);
   const [wordsLoading, setWordsLoading] = useState(false);
   const [wordsError, setWordsError] = useState(null);
@@ -61,15 +62,20 @@ export const SnippetProvider = ({ children }) => {
   const [promptsError, setPromptsError] = useState(null);
   const [instructionsLoading, setInstructionsLoading] = useState(false);
   const [instructionsError, setInstructionsError] = useState(null);
+  const [talkLoading, setTalkLoading] = useState(false);
+  const [talkError, setTalkError] = useState(null);
 
   const [contentSearchQuery, setContentSearchQuery] = useState('');
   const [contentSelectedTags, setContentSelectedTags] = useState([]);
   const [contentSortBy, setContentSortBy] = useState('dateAdded');
   const [wordsSelectedLanguage, setWordsSelectedLanguage] = useState('all');
   const [wordsShowFavoritesOnly, setWordsShowFavoritesOnly] = useState(false);
+  const [textSnippetsSelectedLanguage, setTextSnippetsSelectedLanguage] = useState('all');
   const [textSnippetsShowFavoritesOnly, setTextSnippetsShowFavoritesOnly] = useState(false);
   const [instructionsShowFavoritesOnly, setInstructionsShowFavoritesOnly] = useState(false);
   const [promptsShowFavoritesOnly, setPromptsShowFavoritesOnly] = useState(false);
+  const [talkShowFavoritesOnly, setTalkShowFavoritesOnly] = useState(false);
+  const [talkSelectedLanguage, setTalkSelectedLanguage] = useState('all');
 
   const CONTENT_FAVORITES_KEY = 'contentFavorites';
   const [contentFavorites, setContentFavorites] = useState(() => {
@@ -83,13 +89,14 @@ export const SnippetProvider = ({ children }) => {
             textSnippets: Array.isArray(o.textSnippets) ? o.textSnippets : [],
             prompts: Array.isArray(o.prompts) ? o.prompts : [],
             instructions: Array.isArray(o.instructions) ? o.instructions : [],
+            talks: Array.isArray(o.talks) ? o.talks : [],
           };
         }
       }
     } catch {
       // ignore parse error
     }
-    return { words: [], textSnippets: [], prompts: [], instructions: [] };
+    return { words: [], textSnippets: [], prompts: [], instructions: [], talks: [] };
   });
 
   useEffect(() => {
@@ -102,6 +109,7 @@ export const SnippetProvider = ({ children }) => {
 
   const toggleContentFavorite = useCallback((contentType, id) => {
     const key = contentType === 'text_snippet' ? 'textSnippets' : contentType + 's';
+    if (!contentFavorites.hasOwnProperty(key)) return;
     setContentFavorites(prev => ({
       ...prev,
       [key]: prev[key].includes(id)
@@ -146,6 +154,7 @@ export const SnippetProvider = ({ children }) => {
         setTextSnippets([]);
         setPrompts([]);
         setInstructions([]);
+        setTalk([]);
       };
       queueMicrotask(clear);
       return;
@@ -220,6 +229,24 @@ export const SnippetProvider = ({ children }) => {
           setInstructions([]);
         } else {
           setInstructions((iData || []).map(mapRow));
+        }
+      }
+    })();
+
+    (async () => {
+      setTalkLoading(true);
+      setTalkError(null);
+      const { data: tData, error: tErr } = await supabase
+        .from('talk')
+        .select('*')
+        .order('date_added', { ascending: false });
+      if (!cancelled) {
+        setTalkLoading(false);
+        if (tErr) {
+          setTalkError(tErr.message);
+          setTalk([]);
+        } else {
+          setTalk((tData || []).map(mapRow));
         }
       }
     })();
@@ -384,6 +411,8 @@ export const SnippetProvider = ({ children }) => {
     setContentSortBy('dateAdded');
     setWordsSelectedLanguage('all');
     setWordsShowFavoritesOnly(false);
+    setTextSnippetsSelectedLanguage('all');
+    setTalkSelectedLanguage('all');
   };
 
   const wordsTags = useMemo(() =>
@@ -400,10 +429,16 @@ export const SnippetProvider = ({ children }) => {
     [...new Set(textSnippets.flatMap(t => t.tags || []))].sort(), [textSnippets]);
   const textSnippetsCategories = useMemo(() =>
     [...new Set(textSnippets.map(t => t.category).filter(Boolean))].sort(), [textSnippets]);
+  const textSnippetsLanguages = useMemo(() =>
+    [...new Set(textSnippets.map(t => t.language).filter(Boolean))].sort(), [textSnippets]);
   const promptsTags = useMemo(() =>
     [...new Set(prompts.flatMap(p => p.tags || []))].sort(), [prompts]);
   const instructionsTags = useMemo(() =>
     [...new Set(instructions.flatMap(i => i.tags || []))].sort(), [instructions]);
+  const talkTags = useMemo(() =>
+    [...new Set(talk.flatMap(t => t.tags || []))].sort(), [talk]);
+  const talkLanguages = useMemo(() =>
+    [...new Set(talk.map(t => t.language).filter(Boolean))].sort(), [talk]);
 
   const filteredWords = useMemo(() => {
     let list = filterContentItems(words, {
@@ -435,12 +470,15 @@ export const SnippetProvider = ({ children }) => {
       dateKey: 'date_added',
       textKey: 'text',
     });
+    if (textSnippetsSelectedLanguage !== 'all') {
+      list = list.filter((t) => t.language === textSnippetsSelectedLanguage);
+    }
     if (textSnippetsShowFavoritesOnly) {
       const favIds = contentFavorites.textSnippets || [];
       list = list.filter((t) => favIds.includes(t.id));
     }
     return list;
-  }, [textSnippets, contentSearchQuery, contentSelectedTags, contentSortBy, textSnippetsShowFavoritesOnly, contentFavorites]);
+  }, [textSnippets, contentSearchQuery, contentSelectedTags, contentSortBy, textSnippetsSelectedLanguage, textSnippetsShowFavoritesOnly, contentFavorites]);
 
   const textSnippetsFavoritesCount = (contentFavorites.textSnippets || []).length;
 
@@ -479,6 +517,27 @@ export const SnippetProvider = ({ children }) => {
   }, [instructions, contentSearchQuery, contentSelectedTags, contentSortBy, instructionsShowFavoritesOnly, contentFavorites]);
 
   const instructionsFavoritesCount = (contentFavorites.instructions || []).length;
+
+  const filteredTalk = useMemo(() => {
+    let list = filterContentItems(talk, {
+      searchQuery: contentSearchQuery,
+      searchFields: ['text', 'notes'],
+      selectedTags: contentSelectedTags,
+      sortBy: contentSortBy,
+      dateKey: 'date_added',
+      textKey: 'text',
+    });
+    if (talkSelectedLanguage !== 'all') {
+      list = list.filter((t) => t.language === talkSelectedLanguage);
+    }
+    if (talkShowFavoritesOnly) {
+      const favIds = contentFavorites.talks || [];
+      list = list.filter((t) => favIds.includes(t.id));
+    }
+    return list;
+  }, [talk, contentSearchQuery, contentSelectedTags, contentSortBy, talkSelectedLanguage, talkShowFavoritesOnly, contentFavorites]);
+
+  const talkFavoritesCount = (contentFavorites.talks || []).length;
 
   const addWord = useCallback(async (payload) => {
     const { error } = await supabase.from('words').insert({
@@ -602,6 +661,35 @@ export const SnippetProvider = ({ children }) => {
     fetchContent();
   }, [fetchContent]);
 
+  const addTalk = useCallback(async (payload) => {
+    const { error } = await supabase.from('talk').insert({
+      text: payload.text,
+      language: payload.language || null,
+      notes: payload.notes || null,
+      tags: payload.tags || [],
+    });
+    if (error) throw error;
+    fetchContent();
+  }, [fetchContent]);
+
+  const updateTalk = useCallback(async (id, payload) => {
+    const { data, error } = await supabase.from('talk').update({
+      text: payload.text,
+      language: payload.language || null,
+      notes: payload.notes || null,
+      tags: payload.tags || [],
+    }).eq('id', id).select();
+    if (error) throw error;
+    if (!data?.length) throw new Error('Talk not found.');
+    fetchContent();
+  }, [fetchContent]);
+
+  const deleteTalk = useCallback(async (id) => {
+    const { error } = await supabase.from('talk').delete().eq('id', id);
+    if (error) throw error;
+    fetchContent();
+  }, [fetchContent]);
+
   const value = {
     allSnippets: snippets,
     filteredSnippets,
@@ -663,6 +751,9 @@ export const SnippetProvider = ({ children }) => {
     textSnippetsError,
     textSnippetsTags,
     textSnippetsCategories,
+    textSnippetsLanguages,
+    textSnippetsSelectedLanguage,
+    setTextSnippetsSelectedLanguage,
     textSnippetsShowFavoritesOnly,
     setTextSnippetsShowFavoritesOnly,
     textSnippetsFavoritesCount,
@@ -693,6 +784,21 @@ export const SnippetProvider = ({ children }) => {
     addInstruction,
     updateInstruction,
     deleteInstruction,
+
+    talk,
+    filteredTalk,
+    talkLoading,
+    talkError,
+    talkTags,
+    talkLanguages,
+    talkSelectedLanguage,
+    setTalkSelectedLanguage,
+    talkShowFavoritesOnly,
+    setTalkShowFavoritesOnly,
+    talkFavoritesCount,
+    addTalk,
+    updateTalk,
+    deleteTalk,
 
     contentSearchQuery,
     setContentSearchQuery,

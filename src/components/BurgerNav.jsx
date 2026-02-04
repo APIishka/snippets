@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { to: '/snippets', label: 'Code' },
   { to: '/words', label: 'Words' },
   { to: '/messages', label: 'Messages' },
+  { to: '/talk', label: 'Talk' },
   { to: '/instructions', label: 'Instructions' },
   { to: '/prompts', label: 'Prompts' },
 ];

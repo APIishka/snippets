@@ -7,7 +7,7 @@ const GAP = 8;
  * Masonry for text snippets (messages): same logic as words/code page.
  * Cards flow into columns, no strict rows.
  */
-export default function MasonryTextSnippets({ items, onEdit, isAuthenticated }) {
+export default function MasonryTextSnippets({ items, onEdit, isAuthenticated, contentType = 'text_snippet' }) {
   const [columnCount, setColumnCount] = useState(1);
   const [containerWidth, setContainerWidth] = useState(0);
   const [measuredHeights, setMeasuredHeights] = useState({});
@@ -154,21 +154,30 @@ export default function MasonryTextSnippets({ items, onEdit, isAuthenticated }) 
     };
   }, [distributedItems, columnCount, columnWidth]);
 
+  const getCardProps = (item) => ({
+    title: item.text?.slice(0, 60) + (item.text?.length > 60 ? '…' : '') || '',
+    languageLabel: contentType === 'talk' ? (item.language || null) : (item.category || item.language || null),
+    bodyText: item.text || '', // same for talk and text_snippet: main content is text
+  });
+
   if (columnCount === 1) {
     return (
       <div className="space-y-2">
-        {items.map((item) => (
-          <UnifiedContentCard
-            key={item.id}
-            item={item}
-            contentType="text_snippet"
-            title={item.text?.slice(0, 60) + (item.text?.length > 60 ? '…' : '')}
-            languageLabel={item.category || item.language || null}
-            bodyText={item.text || ''}
-            onEdit={onEdit}
-            isAuthenticated={isAuthenticated}
-          />
-        ))}
+        {items.map((item) => {
+          const { title, languageLabel, bodyText } = getCardProps(item);
+          return (
+            <UnifiedContentCard
+              key={item.id}
+              item={item}
+              contentType={contentType}
+              title={title}
+              languageLabel={languageLabel}
+              bodyText={bodyText}
+              onEdit={onEdit}
+              isAuthenticated={isAuthenticated}
+            />
+          );
+        })}
       </div>
     );
   }
@@ -188,24 +197,27 @@ export default function MasonryTextSnippets({ items, onEdit, isAuthenticated }) 
             : { minHeight: 0 }
         }
       >
-        {distributedItems.map(({ item }) => (
-          <div
-            key={item.id}
-            ref={(el) => { if (el) itemRefs.current[item.id] = el; }}
-            className="masonry-textsnippets-item"
-            style={positions[item.id] || { position: 'relative', width: '100%' }}
-          >
-            <UnifiedContentCard
-              item={item}
-              contentType="text_snippet"
-              title={item.text?.slice(0, 60) + (item.text?.length > 60 ? '…' : '')}
-              languageLabel={item.category || item.language || null}
-              bodyText={item.text || ''}
-              onEdit={onEdit}
-              isAuthenticated={isAuthenticated}
-            />
-          </div>
-        ))}
+        {distributedItems.map(({ item }) => {
+          const { title, languageLabel, bodyText } = getCardProps(item);
+          return (
+            <div
+              key={item.id}
+              ref={(el) => { if (el) itemRefs.current[item.id] = el; }}
+              className="masonry-textsnippets-item"
+              style={positions[item.id] || { position: 'relative', width: '100%' }}
+            >
+              <UnifiedContentCard
+                item={item}
+                contentType={contentType}
+                title={title}
+                languageLabel={languageLabel}
+                bodyText={bodyText}
+                onEdit={onEdit}
+                isAuthenticated={isAuthenticated}
+              />
+            </div>
+          );
+        })}
       </div>
     </>
   );
