@@ -193,12 +193,15 @@ const UnifiedContentCard = ({
   const isMessageCard = contentType === 'text_snippet' || contentType === 'talk';
   const copyOnCardClick = contentType === 'text_snippet' || contentType === 'talk' || contentType === 'prompt';
   const handleCardClick = copyOnCardClick ? () => handleCopy() : undefined;
+  const useTightSpacing = isMessageCard || contentType === 'prompt' || contentType === 'instruction';
+  const cardPadding = useTightSpacing ? 'p-2' : 'p-3';
+  const cardGap = useTightSpacing ? 'gap-1.5' : 'gap-2';
 
   return (
     <div className="relative md:group">
       <div
         ref={cardRef}
-        className={`border rounded-lg p-3 flex flex-col min-h-0 ${copyOnCardClick ? 'cursor-pointer' : ''}`}
+        className={`border rounded-lg ${cardPadding} flex flex-col min-h-0 ${copyOnCardClick ? 'cursor-pointer' : ''}`}
         style={{
           background: bgColor,
           borderColor: cardBorderColor,
@@ -209,7 +212,7 @@ const UnifiedContentCard = ({
         tabIndex={copyOnCardClick ? 0 : undefined}
         title={copyOnCardClick ? 'Click to copy' : undefined}
       >
-        <div className={`flex items-start justify-between gap-2 ${isMessageCard ? '' : 'mb-2'}`}>
+        <div className={`flex items-start justify-between ${cardGap} ${isMessageCard ? '' : 'mb-2'}`}>
           {!isMessageCard && (
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <h3 className="text-xs font-normal leading-tight break-words" style={{ color: textColor }} title={title ?? (item.content ?? item.text)}>

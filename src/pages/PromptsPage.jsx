@@ -99,7 +99,7 @@ const PromptsPage = () => {
         theme="dark"
         emptyMessage="No prompts"
       >
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
@@ -127,7 +127,7 @@ const PromptsPage = () => {
         {filteredPrompts.length === 0 ? (
           <p className="text-sm py-8" style={{ color: '#8b949e' }}>No prompts found.</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {filteredPrompts.map((item) => (
               <UnifiedContentCard
                 key={item.id}

@@ -162,7 +162,7 @@ export default function MasonryTextSnippets({ items, onEdit, isAuthenticated, co
 
   if (columnCount === 1) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-1">
         {items.map((item) => {
           const { title, languageLabel, bodyText } = getCardProps(item);
           return (
